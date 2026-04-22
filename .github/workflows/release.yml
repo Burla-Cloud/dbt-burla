@@ -32,11 +32,13 @@ jobs:
       - name: Publish to PyPI via trusted publishing
         if: ${{ env.PYPI_TOKEN == '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
       - name: Publish to PyPI via token
         if: ${{ env.PYPI_TOKEN != '' }}
-        run: uv publish --token "$PYPI_TOKEN"
+        run: uv publish --token "$PYPI_TOKEN" --check-url https://pypi.org/simple/
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
