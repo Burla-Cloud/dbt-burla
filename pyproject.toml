@@ -63,6 +63,11 @@ dev = [
     "ruff>=0.5",
     "types-requests>=2.32",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.10",
+]
 
 [tool.uv]
 package = true

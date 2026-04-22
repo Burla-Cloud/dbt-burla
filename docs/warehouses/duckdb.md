@@ -39,7 +39,7 @@ Everything `dbt-duckdb` supports works: `path: ":memory:"`, `attach:`,
   without wanting to hit a real cluster. Set `burla_fake: true`.
 - **CI**. DuckDB is embedded, zero setup, and the full Python model code
   path still runs.
-- **Demos and tutorials**. See the [quickstart example](../../examples/01-quickstart-duckdb/).
+- **Demos and tutorials**. See the [quickstart example](https://github.com/Burla-Cloud/dbt-burla/tree/main/examples/01-quickstart-duckdb).
 
 ## When *not* to use it
 

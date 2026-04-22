@@ -150,5 +150,5 @@ native adapter. This gives us:
 - No monkey-patching or dynamic dispatch
 - Clean `pip install "dbt-burla[<warehouse>]"` story via extras
 
-See [`src/dbt/adapters/burla/python_submissions.py`](../src/dbt/adapters/burla/python_submissions.py)
+See [`src/dbt/adapters/burla/python_submissions.py`](https://github.com/Burla-Cloud/dbt-burla/blob/main/src/dbt/adapters/burla/python_submissions.py)
 for the full helper implementation.

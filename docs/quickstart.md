@@ -104,4 +104,4 @@ table in Snowflake, which downstream SQL models can `ref()` like any other.
 - [Configuration reference](configuration.md) - fine-tune Burla behavior
   per-model and per-profile
 - [How it works](how-it-works.md) - understand the data flow end-to-end
-- [`examples/`](../examples/) - four runnable reference projects
+- [`examples/`](https://github.com/Burla-Cloud/dbt-burla/tree/main/examples) - four runnable reference projects
