@@ -1,0 +1,194 @@
+[project]
+name = "dbt-burla"
+description = "A dbt adapter that runs Python models on a Burla cluster."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "FSL-1.1-Apache-2.0" }
+authors = [{ name = "Burla", email = "jake@burla.dev" }]
+keywords = ["dbt", "burla", "data", "python", "parallel", "analytics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+dependencies = [
+    "dbt-core>=1.8,<1.10",
+    "dbt-adapters>=1.7",
+    "burla>=1.5.7",
+    "cloudpickle>=3.0",
+    "pandas>=2.0",
+    "pyarrow>=15.0",
+]
+
+[project.optional-dependencies]
+duckdb = ["dbt-duckdb>=1.8"]
+snowflake = ["dbt-snowflake>=1.8", "snowflake-connector-python[pandas]>=3.6"]
+bigquery = ["dbt-bigquery>=1.8", "pandas-gbq>=0.22", "google-cloud-bigquery-storage>=2.24"]
+all = [
+    "dbt-duckdb>=1.8",
+    "dbt-snowflake>=1.8",
+    "snowflake-connector-python[pandas]>=3.6",
+    "dbt-bigquery>=1.8",
+    "pandas-gbq>=0.22",
+    "google-cloud-bigquery-storage>=2.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/Burla-Cloud/dbt-burla"
+Documentation = "https://github.com/Burla-Cloud/dbt-burla#readme"
+Issues = "https://github.com/Burla-Cloud/dbt-burla/issues"
+Source = "https://github.com/Burla-Cloud/dbt-burla"
+
+[project.entry-points."dbt.adapters"]
+burla_duckdb = "dbt.adapters.burla_duckdb:Plugin"
+burla_snowflake = "dbt.adapters.burla_snowflake:Plugin"
+burla_bigquery = "dbt.adapters.burla_bigquery:Plugin"
+
+[dependency-groups]
+dev = [
+    "dbt-duckdb>=1.8",
+    "duckdb>=1.0",
+    "mypy>=1.10",
+    "pandas-stubs>=2.2",
+    "pre-commit>=3.7",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pytest-mock>=3.14",
+    "ruff>=0.5",
+    "types-requests>=2.32",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/dbt/adapters/burla/__version__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dbt"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/dbt/**",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "B",
+    "UP",
+    "C4",
+    "SIM",
+    "RUF",
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["N802", "N806"]
+"examples/**" = ["N802", "N806"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_decorators = true
+no_implicit_reexport = false
+files = ["src/dbt/adapters"]
+explicit_package_bases = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = [
+    "burla.*",
+    "cloudpickle.*",
+    "pandas_gbq.*",
+    "snowflake.*",
+    "duckdb.*",
+    "dbt.*",
+]
+ignore_missing_imports = true
+
+# dbt-core's public surface is loosely typed - many methods return Any from
+# untyped upstream code. Keep strict-mode checks on our own code but relax
+# the pieces that fight dbt's internals.
+[[tool.mypy.overrides]]
+module = [
+    "dbt.adapters.burla.*",
+    "dbt.adapters.burla_duckdb.*",
+    "dbt.adapters.burla_snowflake.*",
+    "dbt.adapters.burla_bigquery.*",
+]
+disallow_untyped_calls = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+testpaths = ["tests"]
+markers = [
+    "unit: fast, no external services",
+    "duckdb: end-to-end using DuckDB (runs in CI)",
+    "snowflake: end-to-end against Snowflake (requires credentials)",
+    "bigquery: end-to-end against BigQuery (requires credentials)",
+    "burla_cluster: uses a real Burla cluster (nightly only)",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:pkg_resources",
+    "ignore::DeprecationWarning:dbt.*",
+    "ignore::ResourceWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
+[tool.coverage.run]
+source = ["src/dbt/adapters/burla"]
+branch = true
+omit = [
+    "src/dbt/adapters/burla/warehouses/snowflake.py",
+    "src/dbt/adapters/burla/warehouses/bigquery.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

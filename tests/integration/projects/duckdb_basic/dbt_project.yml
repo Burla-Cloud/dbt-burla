@@ -1,0 +1,16 @@
+name: "burla_duckdb_basic"
+version: "1.0.0"
+config-version: 2
+
+profile: "burla_duckdb_basic"
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  burla_duckdb_basic:
+    +materialized: table

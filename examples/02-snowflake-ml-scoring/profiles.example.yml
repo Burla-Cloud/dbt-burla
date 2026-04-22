@@ -1,0 +1,19 @@
+sf_ml_scoring:
+  target: dev
+  outputs:
+    dev:
+      type: burla_snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'SYSADMIN') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      schema: DBT_BURLA_DEMO
+      threads: 4
+
+      # Burla-specific knobs:
+      burla_default_workers: 100
+      burla_default_cpus_per_worker: 2
+      # burla_cluster_url: "{{ env_var('BURLA_CLUSTER_URL', '') }}"
+      # burla_fake: true       # uncomment to run without a cluster

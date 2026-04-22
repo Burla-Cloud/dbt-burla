@@ -1,0 +1,15 @@
+bq_llm_enrichment:
+  target: dev
+  outputs:
+    dev:
+      type: burla_bigquery
+      method: oauth
+      project: "{{ env_var('BIGQUERY_PROJECT') }}"
+      dataset: dbt_burla_demo
+      threads: 4
+      location: US
+
+      burla_default_workers: 50
+      burla_default_cpus_per_worker: 1
+      # burla_cluster_url: "{{ env_var('BURLA_CLUSTER_URL', '') }}"
+      # burla_fake: true

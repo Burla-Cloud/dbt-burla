@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: enriched_orders
+    columns:
+      - name: id
+        tests: [not_null, unique]
+      - name: customer_name
+        tests: [not_null]
+      - name: is_large
+        tests: [not_null]
+
+  - name: order_summary
+    columns:
+      - name: total_amount
+        tests: [not_null]
+      - name: row_count
+        tests: [not_null]

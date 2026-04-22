@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: RAW
+    tables:
+      - name: customers
+        description: "Raw customer data loaded from the source system"

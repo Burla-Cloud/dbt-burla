@@ -1,0 +1,62 @@
+name: Integration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  snowflake:
+    if: ${{ vars.RUN_SNOWFLAKE_TESTS == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_SCHEMA: dbt_burla_ci_${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --all-extras
+      - run: uv run pytest -m snowflake tests/integration -v
+
+  bigquery:
+    if: ${{ vars.RUN_BIGQUERY_TESTS == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      BIGQUERY_PROJECT: ${{ secrets.BIGQUERY_PROJECT }}
+      BIGQUERY_DATASET: dbt_burla_ci_${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      - run: uv sync --all-extras
+      - run: uv run pytest -m bigquery tests/integration -v
+
+  burla-cluster:
+    if: ${{ vars.RUN_BURLA_CLUSTER_TESTS == 'true' && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    env:
+      BURLA_CLUSTER_URL: ${{ secrets.BURLA_CLUSTER_URL }}
+      BURLA_CREDENTIALS_JSON: ${{ secrets.BURLA_CREDENTIALS_JSON }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --all-extras
+      - name: Write burla credentials
+        run: |
+          mkdir -p ~/.config/burla
+          echo "$BURLA_CREDENTIALS_JSON" > ~/.config/burla/burla_credentials.json
+      - run: uv run pytest -m burla_cluster tests/integration -v

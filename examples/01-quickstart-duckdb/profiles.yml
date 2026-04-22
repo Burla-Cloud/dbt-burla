@@ -1,0 +1,9 @@
+quickstart:
+  target: dev
+  outputs:
+    dev:
+      type: burla_duckdb
+      path: ./warehouse.duckdb
+      schema: main
+      # Set burla_fake: false and add burla_cluster_url once you have a cluster.
+      burla_fake: true

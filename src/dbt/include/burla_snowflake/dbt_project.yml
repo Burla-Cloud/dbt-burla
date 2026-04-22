@@ -1,0 +1,7 @@
+name: dbt_burla_snowflake
+version: 1.0
+config-version: 2
+
+macro-paths: ["macros"]
+
+require-dbt-version: [">=1.8.0", "<1.10.0"]

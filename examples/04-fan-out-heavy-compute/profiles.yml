@@ -1,0 +1,10 @@
+fan_out_heavy:
+  target: dev
+  outputs:
+    dev:
+      type: burla_duckdb
+      path: ./warehouse.duckdb
+      schema: main
+      burla_fake: true
+      burla_default_workers: 1000
+      burla_default_cpus_per_worker: 4

@@ -1,0 +1,14 @@
+{{ config(materialized="view") }}
+
+select *
+from (
+    values
+        (1, 100),
+        (2, 200),
+        (3, 500),
+        (4, 1000),
+        (5, 2000),
+        (6, 5000),
+        (7, 10000),
+        (8, 20000)
+) as t(id, n_samples)

@@ -1,0 +1,10 @@
+name: "sf_ml_scoring"
+version: "1.0.0"
+config-version: 2
+profile: "sf_ml_scoring"
+
+model-paths: ["models"]
+
+models:
+  sf_ml_scoring:
+    +materialized: table

@@ -1,0 +1,10 @@
+name: "bq_llm_enrichment"
+version: "1.0.0"
+config-version: 2
+profile: "bq_llm_enrichment"
+
+model-paths: ["models"]
+
+models:
+  bq_llm_enrichment:
+    +materialized: table
