@@ -7,7 +7,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
       id-token: write
       contents: read
@@ -29,16 +28,11 @@ jobs:
       - name: Build
         run: uv build
 
-      - name: Publish to PyPI via trusted publishing
-        if: ${{ env.PYPI_TOKEN == '' }}
+      # Prefer the token secret (fast path). Falls back to trusted publishing
+      # if the secret isn't set - configure via the `pypi` environment in repo
+      # settings + a trusted publisher on PyPI to use that path.
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-
-      - name: Publish to PyPI via token
-        if: ${{ env.PYPI_TOKEN != '' }}
-        run: uv publish --token "$PYPI_TOKEN" --check-url https://pypi.org/simple/
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          password: ${{ secrets.PYPI_TOKEN }}
