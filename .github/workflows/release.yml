@@ -30,4 +30,13 @@ jobs:
         run: uv build
 
       - name: Publish to PyPI via trusted publishing
+        if: ${{ env.PYPI_TOKEN == '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+      - name: Publish to PyPI via token
+        if: ${{ env.PYPI_TOKEN != '' }}
+        run: uv publish --token "$PYPI_TOKEN"
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
