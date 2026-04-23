@@ -1,0 +1,48 @@
+---
+interface TocItem {
+  id: string;
+  title: string;
+  level?: 2 | 3;
+}
+
+const { items } = Astro.props as { items: TocItem[] };
+---
+
+<aside class="toc" aria-label="On this page">
+  <div class="toc-label">On this page</div>
+  <ul>
+    {items.map((it) => (
+      <li>
+        <a href={`#${it.id}`} class={`level-${it.level ?? 2}`}>{it.title}</a>
+      </li>
+    ))}
+  </ul>
+</aside>
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>(".toc a");
+  const targets = Array.from(links)
+    .map((l) => {
+      const id = l.getAttribute("href")?.slice(1) ?? "";
+      const el = document.getElementById(id);
+      return el ? { el, link: l } : null;
+    })
+    .filter((x): x is { el: HTMLElement; link: HTMLAnchorElement } => !!x);
+
+  if (targets.length > 0 && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const match = targets.find((t) => t.el === entry.target);
+          if (!match) continue;
+          if (entry.isIntersecting) {
+            links.forEach((l) => l.classList.remove("active"));
+            match.link.classList.add("active");
+          }
+        }
+      },
+      { rootMargin: "-10% 0px -70% 0px", threshold: 0 }
+    );
+    targets.forEach((t) => observer.observe(t.el));
+  }
+</script>

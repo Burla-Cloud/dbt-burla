@@ -2,25 +2,39 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "install", title: "Install", level: 2 as const },
+  { id: "auth", title: "Authentication", level: 2 as const },
+  { id: "profile", title: "profiles.yml", level: 2 as const },
+  { id: "data", title: "Data movement", level: 2 as const },
+  { id: "sql", title: "Running SQL models", level: 2 as const },
+  { id: "costs", title: "Costs", level: 2 as const },
+  { id: "caveats", title: "Known caveats", level: 2 as const },
+];
 ---
 
 <DocsLayout
-  title="BigQuery setup"
+  title="BigQuery"
   description="Run dbt Python models on Burla instead of Dataproc Spark."
   lede="You already run production dbt on BigQuery but want your Python models to run on elastic Burla workers instead of Dataproc Spark. Skip the minutes-long Dataproc startup cost — Burla workers are ready in under a second."
-  prev={{ title: "Snowflake setup", href: withBase("/warehouses/snowflake/") }}
+  crumbs={[{ title: "Warehouses", href: withBase("/docs/") }]}
+  toc={toc}
+  prev={{ title: "Snowflake", href: withBase("/warehouses/snowflake/") }}
   next={{ title: "Quickstart", href: withBase("/docs/quickstart/") }}
 >
-  <h2>Install</h2>
-  <Code code={`pip install "dbt-burla[bigquery]"`} lang="bash" theme="github-dark-dimmed" />
-  <p>This pulls in <code>dbt-bigquery</code>, <code>pandas-gbq</code>, and the Burla client.</p>
+  <p><code>burla_bigquery</code> wraps <a href="https://github.com/dbt-labs/dbt-bigquery">dbt-bigquery</a> and routes Python models to Burla instead of Dataproc.</p>
 
-  <h2>Authentication</h2>
+  <h2 id="install">Install</h2>
+  <Code code={`pip install "dbt-burla[bigquery]"`} lang="bash" theme="github-dark-dimmed" />
+  <p>Pulls in <code>dbt-bigquery</code>, <code>pandas-gbq</code>, and the Burla client.</p>
+
+  <h2 id="auth">Authentication</h2>
   <Code code={`gcloud auth application-default login
 # or:
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>profiles.yml</h2>
+  <h2 id="profile">profiles.yml</h2>
   <p>Swap <code>type: bigquery</code> for <code>type: burla_bigquery</code>:</p>
   <Code code={`my_project:
   target: prod
@@ -38,26 +52,22 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json`} lang="bash" theme="gith
       burla_default_workers: 100
       burla_default_cpus_per_worker: 2`} lang="yaml" theme="github-dark-dimmed" />
 
-  <h2>Data movement</h2>
-  <p>
-    For Python models, upstream tables are pulled into pandas via the BigQuery Storage API
-    (<code>to_dataframe(create_bqstorage_client=True)</code>) — the fastest path for medium tables.
-    Results are uploaded back via <code>load_table_from_dataframe</code> (Parquet upload).
-  </p>
+  <h2 id="data">Data movement</h2>
+  <p>Upstream tables are pulled via the BigQuery Storage API — the fastest path for medium tables. Results are uploaded back via <code>load_table_from_dataframe</code> (Parquet upload).</p>
 
-  <h2>Running SQL models</h2>
+  <h2 id="sql">Running SQL models</h2>
   <p>SQL models run in BigQuery as usual. No difference from vanilla <code>dbt-bigquery</code>.</p>
 
-  <h2>Costs</h2>
+  <h2 id="costs">Costs</h2>
   <ol>
     <li><strong>BigQuery query bytes</strong> for reading upstream and writing results.</li>
     <li><strong>BigQuery Storage API</strong> charges for large reads.</li>
     <li><strong>Burla worker time</strong> for the Python execution.</li>
   </ol>
 
-  <h2>Known caveats</h2>
+  <h2 id="caveats">Known caveats</h2>
   <ul>
-    <li>Partitioned/clustered tables: target inherits partitioning only if configured via dbt config.</li>
+    <li>Partitioned/clustered tables inherit partitioning only if configured via dbt config.</li>
     <li>Regional datasets: set <code>location:</code>; the BigQuery read/write must match the dataset region.</li>
   </ul>
 </DocsLayout>

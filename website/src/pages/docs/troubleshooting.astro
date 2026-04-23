@@ -2,95 +2,99 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "not-found", title: "Adapter not found", level: 2 as const },
+  { id: "indentation", title: "IndentationError", level: 2 as const },
+  { id: "no-burla", title: "burla client not installed", level: 2 as const },
+  { id: "unreachable", title: "Cluster unreachable", level: 2 as const },
+  { id: "not-df", title: "Must return DataFrame", level: 2 as const },
+  { id: "not-preloaded", title: "Upstream not pre-loaded", level: 2 as const },
+  { id: "dbt-tmp", title: "Table __dbt_tmp missing", level: 2 as const },
+  { id: "hangs", title: "Model hangs", level: 2 as const },
+  { id: "resource-warn", title: "pytest ResourceWarning", level: 2 as const },
+  { id: "sf-binding", title: "Snowflake binding error", level: 2 as const },
+  { id: "bq-access", title: "BigQuery access denied", level: 2 as const },
+];
 ---
 
 <DocsLayout
   title="Troubleshooting"
   description="Common dbt-burla issues and fixes."
   lede="Something broke. Start here before opening an issue — most problems are one of the patterns below."
+  crumbs={[{ title: "Docs", href: withBase("/docs/") }]}
+  toc={toc}
   prev={{ title: "Configuration reference", href: withBase("/docs/configuration/") }}
 >
-  <h2>"Could not find adapter type burla_*"</h2>
+  <h2 id="not-found">"Could not find adapter type burla_*"</h2>
   <p>
     <code>pip install "dbt-burla[&lt;warehouse&gt;]"</code> didn't complete, or you're in a
     different virtualenv than dbt itself. Verify:
   </p>
   <Code code={`python -c "from dbt.adapters.burla_duckdb import Plugin; print(Plugin)"`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>"IndentationError: unexpected indent" during a Python model</h2>
-  <p>
-    dbt emits compiled code with leading whitespace; dbt-burla strips this automatically. If you're
-    seeing this, you're on a very old version — upgrade.
-  </p>
+  <h2 id="indentation">"IndentationError: unexpected indent" during a Python model</h2>
+  <p>dbt emits compiled code with leading whitespace; dbt-burla strips this automatically. If you're seeing this, you're on a very old version — upgrade.</p>
 
-  <h2>"The `burla` client isn't installed"</h2>
-  <p>
-    <code>pip install burla</code> (should be pulled in automatically). Or set
-    <code>burla_fake: true</code> in your profile to run Python models in-process.
-  </p>
+  <h2 id="no-burla">"The `burla` client isn't installed"</h2>
+  <p><code>pip install burla</code> (should be pulled in automatically). Or set <code>burla_fake: true</code> in your profile to run in-process.</p>
 
-  <h2>"Burla cluster unreachable at ..."</h2>
+  <h2 id="unreachable">"Burla cluster unreachable at ..."</h2>
   <ol>
     <li><code>burla login</code> was run and credentials are in <code>~/.config/burla/</code>.</li>
     <li><code>burla_cluster_url</code> in your profile matches your cluster.</li>
     <li><code>BURLA_CLUSTER_DASHBOARD_URL</code> env var isn't set to something stale.</li>
   </ol>
-  <p>A quick sanity check:</p>
   <Code code={`python -c "from burla import get_cluster_dashboard_url; print(get_cluster_dashboard_url())"`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>"Python model must return a pandas DataFrame; got ..."</h2>
+  <h2 id="not-df">"Python model must return a pandas DataFrame"</h2>
   <ul>
     <li>Returning a <code>list</code> or <code>dict</code> — wrap with <code>pd.DataFrame(...)</code>.</li>
     <li>Returning a Polars / pyarrow object — convert first: <code>df.to_pandas()</code>.</li>
     <li>Forgetting the <code>return</code> statement.</li>
   </ul>
 
-  <h2>"Model `X` referenced upstream relation `...` which was not pre-loaded"</h2>
-  <p>dbt didn't include the relation in the compiled refs/sources dict. This usually means:</p>
+  <h2 id="not-preloaded">"Upstream relation was not pre-loaded"</h2>
+  <p>dbt didn't include the relation in the compiled refs/sources dict. Usually:</p>
   <ul>
-    <li>You're using a non-standard <code>dbt.ref()</code> pattern (e.g., constructing the name dynamically).</li>
-    <li>There's a ref that exists in dbt's DAG but isn't reachable by your model's <code>depends_on</code>.</li>
+    <li>You're constructing the <code>dbt.ref()</code> name dynamically. Use static strings.</li>
+    <li>A ref exists in dbt's DAG but isn't in your model's <code>depends_on</code>.</li>
   </ul>
 
-  <h2>"Catalog Error: Table with name X__dbt_tmp does not exist"</h2>
-  <p>
-    You're on an old version of dbt-burla that hadn't shipped its custom DuckDB table
-    materialization. Upgrade to <code>&gt;=0.1.0</code>.
-  </p>
+  <h2 id="dbt-tmp">"Catalog Error: Table with name X__dbt_tmp does not exist"</h2>
+  <p>Old version before the custom DuckDB materialization. Upgrade to <code>&gt;=0.1.0</code>.</p>
 
-  <h2>Python model runs forever / hangs on Burla</h2>
+  <h2 id="hangs">Python model runs forever / hangs on Burla</h2>
   <ul>
     <li>The Burla cluster is cold-starting workers (first run takes longer).</li>
     <li>Your <code>burla_image</code> is large and being pulled.</li>
-    <li>Your <code>model()</code> is doing a synchronous network call without a timeout.</li>
+    <li>Your <code>model()</code> has a synchronous network call without a timeout.</li>
   </ul>
-  <p>Set <code>burla_timeout_s</code> on the model to fail fast instead of hanging.</p>
+  <p>Set <code>burla_timeout_s</code> on the model to fail fast.</p>
 
-  <h2>CI pytest fails with "ResourceWarning: unclosed file"</h2>
+  <h2 id="resource-warn">CI pytest fails with "ResourceWarning: unclosed file"</h2>
   <Code code={`[tool.pytest.ini_options]
 filterwarnings = [
     "ignore::ResourceWarning",
     "ignore::pytest.PytestUnraisableExceptionWarning",
 ]`} lang="toml" theme="github-dark-dimmed" />
-  <p>These come from dbt-core's own log file handling, not your code.</p>
 
-  <h2>Snowflake: "100078 (22000): Binding data in type (...) is not supported"</h2>
-  <p><code>write_pandas</code> can't handle every pandas dtype. Convert to str/int/float before returning:</p>
+  <h2 id="sf-binding">Snowflake: "Binding data in type is not supported"</h2>
+  <p><code>write_pandas</code> can't handle every pandas dtype. Convert before returning:</p>
   <Code code={`df["my_col"] = df["my_col"].astype(str)
 return df`} lang="python" theme="github-dark-dimmed" />
 
-  <h2>BigQuery: "Access Denied" during load_table_from_dataframe</h2>
-  <p>
-    Your service account needs both <code>bigquery.dataEditor</code> and
-    <code>bigquery.jobUser</code> on the target dataset. <code>dbt debug</code> doesn't catch this
-    because it only tests SELECT permissions.
-  </p>
+  <h2 id="bq-access">BigQuery: "Access Denied" during load_table_from_dataframe</h2>
+  <p>Service account needs both <code>bigquery.dataEditor</code> and <code>bigquery.jobUser</code>. <code>dbt debug</code> only tests SELECT.</p>
 
   <h2>Still stuck?</h2>
   <p>
-    Open an issue at
-    <a href="https://github.com/Burla-Cloud/dbt-burla/issues">github.com/Burla-Cloud/dbt-burla/issues</a>
-    with: <code>dbt --version</code>, full <code>dbt run --debug</code> output, your Python model
-    (redacted if needed), and warehouse variant.
+    Open an issue at <a href="https://github.com/Burla-Cloud/dbt-burla/issues">github.com/Burla-Cloud/dbt-burla/issues</a> with:
   </p>
+  <ul>
+    <li><code>dbt --version</code></li>
+    <li>Full <code>dbt run --debug</code> output</li>
+    <li>Your Python model (redacted)</li>
+    <li>Warehouse variant</li>
+  </ul>
 </DocsLayout>

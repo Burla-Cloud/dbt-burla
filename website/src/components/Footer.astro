@@ -1,19 +1,56 @@
 ---
+import { withBase } from "../utils/url";
 ---
 
 <footer class="footer">
   <div class="container">
     <div class="footer-inner">
-      <div>
-        <a href="https://burla.dev">Burla</a> &middot;
-        <a href="https://pypi.org/project/dbt-burla/">PyPI</a> &middot;
-        <a href="https://github.com/Burla-Cloud/dbt-burla">GitHub</a> &middot;
-        <a href="https://github.com/Burla-Cloud/dbt-burla/blob/main/LICENSE">License</a>
+      <div class="footer-brand">
+        <a href={withBase("/")} style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <img src={withBase("/logo_small.svg")} alt="Burla" />
+        </a>
+        <p class="footer-tag">
+          A dbt adapter that runs Python models on a Burla cluster.
+          Made by the <a href="https://burla.dev">Burla</a> team.
+        </p>
       </div>
-      <div>
-        Shipped by <a href="https://burla.dev">Burla</a> &middot;
-        <a href="https://cal.com/jakez/burla">Schedule a call</a>
-      </div>
+      <ul class="footer-links">
+        <li class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href={withBase("/docs/quickstart/")}>Quickstart</a></li>
+            <li><a href={withBase("/docs/how-it-works/")}>How it works</a></li>
+            <li><a href={withBase("/docs/configuration/")}>Configuration</a></li>
+            <li><a href={withBase("/examples/")}>Examples</a></li>
+          </ul>
+        </li>
+        <li class="footer-col">
+          <h4>Warehouses</h4>
+          <ul>
+            <li><a href={withBase("/warehouses/duckdb/")}>DuckDB</a></li>
+            <li><a href={withBase("/warehouses/snowflake/")}>Snowflake</a></li>
+            <li><a href={withBase("/warehouses/bigquery/")}>BigQuery</a></li>
+          </ul>
+        </li>
+        <li class="footer-col">
+          <h4>Links</h4>
+          <ul>
+            <li><a href="https://github.com/Burla-Cloud/dbt-burla">GitHub</a></li>
+            <li><a href="https://pypi.org/project/dbt-burla/">PyPI</a></li>
+            <li><a href="https://burla.dev">Burla</a></li>
+            <li><a href="https://cal.com/jakez/burla">Schedule a call</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {new Date().getFullYear()} Burla · FSL-1.1-Apache-2.0</span>
+      <span>
+        <a href="https://github.com/Burla-Cloud/dbt-burla/issues">Report an issue</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/Burla-Cloud/dbt-burla/blob/main/CHANGELOG.md">Changelog</a>
+      </span>
     </div>
   </div>
 </footer>

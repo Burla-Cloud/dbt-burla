@@ -2,16 +2,24 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "run", title: "Run it", level: 2 as const },
+  { id: "whats-in-it", title: "What's in it", level: 2 as const },
+  { id: "takeaways", title: "Key takeaways", level: 2 as const },
+];
 ---
 
 <DocsLayout
   title="Quickstart (DuckDB)"
   description="Zero-setup dbt-burla example running entirely on your laptop."
   lede="The absolute minimum — a dbt project with one Python model running against DuckDB, in-process, with no cluster or cloud setup. Perfect for your first run and for CI."
+  crumbs={[{ title: "Examples", href: withBase("/examples/") }]}
+  toc={toc}
   prev={{ title: "All examples", href: withBase("/examples/") }}
   next={{ title: "Snowflake ML scoring", href: withBase("/examples/snowflake-ml-scoring/") }}
 >
-  <h2>Run it</h2>
+  <h2 id="run">Run it</h2>
   <Code code={`git clone https://github.com/Burla-Cloud/dbt-burla.git
 cd dbt-burla/examples/01-quickstart-duckdb
 pip install "dbt-burla[duckdb]"
@@ -29,7 +37,7 @@ dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
 > select * from main.enriched_orders order by id;
 > select * from main.order_summary;`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>What's in it</h2>
+  <h2 id="whats-in-it">What's in it</h2>
 
   <h3>profiles.yml</h3>
   <Code code={`quickstart:
@@ -77,7 +85,7 @@ from {{ ref('enriched_orders') }}
 group by 1, 2
 order by country, amount_bucket`} lang="sql" theme="github-dark-dimmed" />
 
-  <h2>Key takeaways</h2>
+  <h2 id="takeaways">Key takeaways</h2>
   <ul>
     <li>Python models are just normal Python files with a <code>model(dbt, session)</code> function.</li>
     <li>Downstream SQL models <code>ref()</code> the Python model's output like any other table.</li>

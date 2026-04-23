@@ -2,27 +2,36 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "setup", title: "Setup", level: 2 as const },
+  { id: "run", title: "Run it", level: 2 as const },
+  { id: "the-model", title: "The model", level: 2 as const },
+  { id: "tuning", title: "Tuning", level: 2 as const },
+  { id: "dataflow", title: "Data flow", level: 2 as const },
+];
 ---
 
 <DocsLayout
   title="Snowflake ML scoring"
   description="Per-row ML inference fanned out to 500 Burla workers against a Snowflake table."
   lede="The canonical 'why I wanted dbt-burla' workload — run an ML model across every row of a big Snowflake table, in parallel, from inside a dbt Python model. No Snowpark, no Databricks."
+  crumbs={[{ title: "Examples", href: withBase("/examples/") }]}
+  toc={toc}
   prev={{ title: "DuckDB quickstart", href: withBase("/examples/quickstart-duckdb/") }}
   next={{ title: "BigQuery LLM enrichment", href: withBase("/examples/bigquery-llm-enrichment/") }}
 >
-  <h2>Setup</h2>
+  <h2 id="setup">Setup</h2>
   <Code code={`pip install "dbt-burla[snowflake]"
 cd dbt-burla/examples/02-snowflake-ml-scoring
 cp profiles.example.yml profiles.yml
 $EDITOR profiles.yml`} lang="bash" theme="github-dark-dimmed" />
+  <p>Make sure <code>burla login</code> is configured (or set <code>burla_fake: true</code> in <code>profiles.yml</code> to run in-process against your Snowflake).</p>
 
-  <p>Make sure <code>burla login</code> is configured (or set <code>burla_fake: true</code> to run locally against your Snowflake).</p>
-
-  <h2>Run it</h2>
+  <h2 id="run">Run it</h2>
   <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>The model</h2>
+  <h2 id="the-model">The model</h2>
   <Code code={`# models/scored_customers.py
 import math
 
@@ -51,27 +60,24 @@ def model(dbt, session):
     customers = dbt.ref("stg_customers").to_dict("records")
     scored = list(remote_parallel_map(score, customers))
     return pd.DataFrame(scored)`} lang="python" theme="github-dark-dimmed" />
-
   <p>In a real project, <code>score()</code> would load a cached scikit-learn / XGBoost / PyTorch model (from GCS, S3, or baked into <code>burla_image</code>) and call <code>.predict()</code>.</p>
 
-  <h2>Tuning</h2>
+  <h2 id="tuning">Tuning</h2>
   <table>
     <thead><tr><th>Config</th><th>When to change it</th></tr></thead>
     <tbody>
       <tr><td><code>burla_workers</code></td><td>Scale up for faster wall-clock time. Scale down to stay under cost budgets or rate limits.</td></tr>
-      <tr><td><code>burla_cpus_per_worker</code></td><td>More CPUs for multi-threaded inference libraries; 1-2 is usually fine for scikit-learn / XGBoost.</td></tr>
+      <tr><td><code>burla_cpus_per_worker</code></td><td>More CPUs for multi-threaded inference; 1-2 is usually fine for scikit-learn / XGBoost.</td></tr>
       <tr><td><code>burla_ram_per_worker</code></td><td>Bump if your model artifact + row batch exceeds default RAM.</td></tr>
-      <tr><td><code>burla_image</code></td><td>Bake the model artifact + its exact dependencies in. Sub-second cold starts.</td></tr>
+      <tr><td><code>burla_image</code></td><td>Bake the model + exact dependencies in. Sub-second cold starts.</td></tr>
     </tbody>
   </table>
 
-  <h2>Data flow</h2>
+  <h2 id="dataflow">Data flow</h2>
   <ol>
-    <li><strong>Pull:</strong> dbt-burla <code>SELECT * FROM stg_customers</code> and holds the rows as a pandas DataFrame.</li>
-    <li><strong>Ship:</strong> Rows and the <code>model()</code> function are cloudpickled and sent to Burla.</li>
-    <li><strong>Score:</strong> Each row is passed to <code>score()</code> on a Burla worker (workers process batches in parallel).</li>
-    <li><strong>Land:</strong> The returned DataFrame is uploaded back to Snowflake via <code>write_pandas</code> into a staging table, then atomically swapped to the target.</li>
+    <li><strong>Pull:</strong> <code>SELECT * FROM stg_customers</code> → pandas DataFrame on the dbt runner.</li>
+    <li><strong>Ship:</strong> rows + the <code>model()</code> function are cloudpickled and sent to Burla.</li>
+    <li><strong>Score:</strong> each row is passed to <code>score()</code> on a Burla worker (workers process batches in parallel).</li>
+    <li><strong>Land:</strong> result DataFrame is uploaded back to Snowflake via <code>write_pandas</code>, staged, then atomically swapped.</li>
   </ol>
-
-  <p>Downstream dbt models <code>ref('scored_customers')</code> and use the scored table like any other Snowflake table.</p>
 </DocsLayout>

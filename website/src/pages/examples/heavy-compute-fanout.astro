@@ -2,23 +2,31 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "run", title: "Run it", level: 2 as const },
+  { id: "the-model", title: "The model", level: 2 as const },
+  { id: "when", title: "When to use this pattern", level: 2 as const },
+];
 ---
 
 <DocsLayout
   title="Heavy compute fan-out"
   description="Use remote_parallel_map inside a Python model for massive per-row parallelism."
   lede="The pattern for CPU-heavy per-row work — a Monte-Carlo estimate of pi stands in for any per-row numerical computation. Each row goes to a Burla worker; with burla_fake: true it runs in-process so you can try it without a cluster."
+  crumbs={[{ title: "Examples", href: withBase("/examples/") }]}
+  toc={toc}
   prev={{ title: "BigQuery LLM enrichment", href: withBase("/examples/bigquery-llm-enrichment/") }}
   next={{ title: "All examples", href: withBase("/examples/") }}
 >
-  <h2>Run it</h2>
+  <h2 id="run">Run it</h2>
   <Code code={`cd dbt-burla/examples/04-fan-out-heavy-compute
 pip install "dbt-burla[duckdb]"
 dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
 
-  <p>You'll see one SQL model (<code>stg_inputs</code>) and one Python model (<code>computed_features</code>). The Python model runs <code>_monte_carlo_pi</code> on every row, with each row shipped to a Burla worker in fake mode.</p>
+  <p>One SQL model (<code>stg_inputs</code>) and one Python model (<code>computed_features</code>). The Python model runs <code>_monte_carlo_pi</code> on every row, with each row shipped to a Burla worker in fake mode.</p>
 
-  <h2>The model</h2>
+  <h2 id="the-model">The model</h2>
   <Code code={`# models/computed_features.py
 import random
 
@@ -49,7 +57,7 @@ def model(dbt, session):
     results = list(remote_parallel_map(_monte_carlo_pi, inputs))
     return pd.DataFrame(results)`} lang="python" theme="github-dark-dimmed" />
 
-  <h2>When to use this pattern</h2>
+  <h2 id="when">When to use this pattern</h2>
   <ul>
     <li>Per-row ML inference</li>
     <li>Per-row API calls (translation, enrichment, scraping)</li>
@@ -57,8 +65,7 @@ def model(dbt, session):
     <li>Any workload where the per-row function takes more than a few ms</li>
   </ul>
 
-  <p>For very short per-row work (&lt;1ms), batch rows before submitting — ship a chunk of 100 or 1000 rows at a time to each worker:</p>
-
+  <p>For very short per-row work (&lt;1ms), batch rows before submitting — ship 100 or 1000 rows at a time to each worker:</p>
   <Code code={`def _process_batch(batch: list[dict]) -> list[dict]:
     return [_monte_carlo_pi(row) for row in batch]
 

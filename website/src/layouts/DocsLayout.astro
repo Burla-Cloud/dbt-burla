@@ -2,10 +2,23 @@
 import "../styles/docs.css";
 import BaseLayout from "./BaseLayout.astro";
 import Sidebar from "../components/Sidebar.astro";
+import Toc from "../components/Toc.astro";
+import { withBase } from "../utils/url";
 
 interface PagerLink {
   title: string;
   href: string;
+}
+
+interface Crumb {
+  title: string;
+  href: string;
+}
+
+interface TocItem {
+  id: string;
+  title: string;
+  level?: 2 | 3;
 }
 
 interface Props {
@@ -14,40 +27,65 @@ interface Props {
   lede?: string;
   prev?: PagerLink;
   next?: PagerLink;
+  crumbs?: Crumb[];
+  toc?: TocItem[];
 }
 
-const { title, description, lede, prev, next } = Astro.props;
+const { title, description, lede, prev, next, crumbs, toc } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
-  <div class="docs-layout">
-    <Sidebar />
-    <main class="docs-main">
-      <article class="docs-content">
-        <h1>{title}</h1>
-        {lede && <p class="lede">{lede}</p>}
-        <slot />
+  <div class="docs-shell">
+    <div class="docs-layout">
+      <Sidebar />
+
+      <main class="docs-main">
+        {crumbs && crumbs.length > 0 && (
+          <nav class="breadcrumbs" aria-label="Breadcrumb">
+            <a href={withBase("/")}>Home</a>
+            {crumbs.map((c) => (
+              <>
+                <span class="sep">/</span>
+                <a href={c.href}>{c.title}</a>
+              </>
+            ))}
+            <span class="sep">/</span>
+            <span>{title}</span>
+          </nav>
+        )}
+
+        <div class="docs-title-wrap">
+          <h1>{title}</h1>
+          {lede && <p class="lede">{lede}</p>}
+        </div>
+
+        <article class="docs-content">
+          <slot />
+        </article>
+
         {(prev || next) && (
-          <nav class="docs-footer">
+          <nav class="docs-footer" aria-label="Pager">
             {prev ? (
               <a class="docs-pager" href={prev.href}>
                 <small>← Previous</small>
-                <span>{prev.title}</span>
+                <strong>{prev.title}</strong>
               </a>
             ) : (
-              <span></span>
+              <span class="docs-pager-empty"></span>
             )}
             {next ? (
               <a class="docs-pager docs-pager--next" href={next.href}>
                 <small>Next →</small>
-                <span>{next.title}</span>
+                <strong>{next.title}</strong>
               </a>
             ) : (
-              <span></span>
+              <span class="docs-pager-empty"></span>
             )}
           </nav>
         )}
-      </article>
-    </main>
+      </main>
+
+      {toc && toc.length > 0 && <Toc items={toc} />}
+    </div>
   </div>
 </BaseLayout>

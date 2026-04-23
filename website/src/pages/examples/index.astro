@@ -1,5 +1,6 @@
 ---
 import DocsLayout from "../../layouts/DocsLayout.astro";
+import "../../styles/landing.css";
 import { withBase } from "../../utils/url";
 
 const examples = [
@@ -32,22 +33,21 @@ const examples = [
 
 <DocsLayout
   title="Examples"
-  description="Four runnable dbt-burla projects - from zero-setup to massive fan-out."
-  lede="Every example is a complete, runnable dbt project in the examples/ folder of the repo. Clone, cd in, and dbt run."
+  description="Four runnable dbt-burla projects, from zero-setup to massive fan-out."
+  lede="Every example is a complete, runnable dbt project. Start with the DuckDB quickstart — it runs in-process and needs no setup beyond pip install."
   next={{ title: "DuckDB quickstart", href: withBase("/examples/quickstart-duckdb/") }}
 >
   <blockquote class="callout">
-    <strong>How to use these:</strong> every example is a complete, runnable dbt project in the
-    <code>examples/</code> folder of the <a href="https://github.com/Burla-Cloud/dbt-burla/tree/main/examples">dbt-burla repo</a>. Clone the repo,
-    <code>cd</code> into an example, and run <code>dbt run --profiles-dir .</code>.
+    <p><strong>How to use these:</strong> each example is a complete, runnable dbt project in the <code>examples/</code> folder of the <a href="https://github.com/Burla-Cloud/dbt-burla/tree/main/examples">repo</a>. Clone, <code>cd</code> in, and <code>dbt run --profiles-dir .</code>.</p>
   </blockquote>
 
   <div class="examples-grid" style="margin: 2rem 0;">
     {examples.map((ex) => (
       <a class="ex-card" href={withBase(ex.href)}>
-        <span class="ex-tag">{ex.tag}</span>
+        <span class="tag">{ex.tag}</span>
         <h3>{ex.title}</h3>
         <p>{ex.body}</p>
+        <span class="arrow">Read the guide →</span>
       </a>
     ))}
   </div>
@@ -71,7 +71,7 @@ const examples = [
       <tr>
         <td><a href={withBase("/examples/bigquery-llm-enrichment/")}>BigQuery LLM enrichment</a></td>
         <td>BigQuery</td>
-        <td><code>remote_parallel_map</code> + API call per row + per-row error handling</td>
+        <td><code>remote_parallel_map</code> + API call per row + error handling</td>
       </tr>
       <tr>
         <td><a href={withBase("/examples/heavy-compute-fanout/")}>Heavy compute fan-out</a></td>

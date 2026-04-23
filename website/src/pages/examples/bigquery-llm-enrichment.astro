@@ -2,16 +2,27 @@
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import { Code } from "astro:components";
 import { withBase } from "../../utils/url";
+
+const toc = [
+  { id: "setup", title: "Setup", level: 2 as const },
+  { id: "run", title: "Run it", level: 2 as const },
+  { id: "the-model", title: "The model", level: 2 as const },
+  { id: "tuning", title: "Tuning", level: 2 as const },
+  { id: "errors", title: "Per-row errors", level: 2 as const },
+  { id: "costs", title: "Cost control", level: 2 as const },
+];
 ---
 
 <DocsLayout
   title="BigQuery LLM enrichment"
   description="Call an LLM per row across a BigQuery dataset, in parallel, from a dbt Python model."
   lede="Per-row LLM classification / summarization against a BigQuery table. Each Burla worker makes isolated API calls so rate limits and per-row errors don't cascade. No Dataproc Spark cluster required."
+  crumbs={[{ title: "Examples", href: withBase("/examples/") }]}
+  toc={toc}
   prev={{ title: "Snowflake ML scoring", href: withBase("/examples/snowflake-ml-scoring/") }}
   next={{ title: "Heavy compute fan-out", href: withBase("/examples/heavy-compute-fanout/") }}
 >
-  <h2>Setup</h2>
+  <h2 id="setup">Setup</h2>
   <Code code={`pip install "dbt-burla[bigquery]" openai
 cd dbt-burla/examples/03-bigquery-llm-enrichment
 cp profiles.example.yml profiles.yml
@@ -25,10 +36,10 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
 # And to your LLM provider:
 export OPENAI_API_KEY=sk-...`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>Run it</h2>
+  <h2 id="run">Run it</h2>
   <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
 
-  <h2>The model</h2>
+  <h2 id="the-model">The model</h2>
   <Code code={`# models/categorized_tickets.py
 import json
 import os
@@ -71,7 +82,7 @@ def model(dbt, session):
     classified = list(remote_parallel_map(_classify, tickets))
     return pd.DataFrame(classified)`} lang="python" theme="github-dark-dimmed" />
 
-  <h2>Tuning for API-bound work</h2>
+  <h2 id="tuning">Tuning for API-bound work</h2>
   <table>
     <thead><tr><th>Config</th><th>Guidance</th></tr></thead>
     <tbody>
@@ -81,16 +92,13 @@ def model(dbt, session):
     </tbody>
   </table>
 
-  <h2>Why per-row errors are isolated</h2>
-  <p>
-    Each worker handles one row. A transient 429 or 500 from the API is caught and written back with
-    <code>error=</code> populated, but the rest of the rows succeed. Downstream SQL filters:
-  </p>
+  <h2 id="errors">Why per-row errors are isolated</h2>
+  <p>Each worker handles one row. A transient 429 or 500 from the API is caught and written back with <code>error=</code> populated, but the rest of the rows succeed. Downstream SQL filters:</p>
   <Code code={`select * from {{ ref('categorized_tickets') }}
 where error is null`} lang="sql" theme="github-dark-dimmed" />
   <p>No cluster-wide failure, no retry-the-whole-job story.</p>
 
-  <h2>Cost control</h2>
+  <h2 id="costs">Cost control</h2>
   <ul>
     <li><code>burla_workers × avg call latency</code> ≈ time-to-completion.</li>
     <li><code>burla_workers × LLM cost per call</code> ≈ total cost.</li>
