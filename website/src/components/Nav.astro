@@ -1,0 +1,44 @@
+---
+import { withBase } from "../utils/url";
+
+const { pathname } = Astro.url;
+const isActive = (p: string) => pathname.endsWith(p) || pathname.endsWith(p + "/");
+---
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="topnav-brand" href={withBase("/")}>
+      <img src={withBase("/logo.svg")} alt="" />
+      <span>dbt-burla</span>
+    </a>
+    <ul class="topnav-links">
+      <li>
+        <a href={withBase("/docs/quickstart/")} class={isActive("quickstart") ? "active" : ""}>
+          Quickstart
+        </a>
+      </li>
+      <li>
+        <a href={withBase("/docs/how-it-works/")} class={isActive("how-it-works") ? "active" : ""}>
+          How it works
+        </a>
+      </li>
+      <li>
+        <a
+          href={withBase("/docs/configuration/")}
+          class={isActive("configuration") ? "active" : ""}
+        >
+          Configuration
+        </a>
+      </li>
+      <li>
+        <a href={withBase("/examples/")} class={pathname.includes("/examples") ? "active" : ""}>
+          Examples
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/Burla-Cloud/dbt-burla">GitHub</a>
+      </li>
+    </ul>
+    <a class="topnav-cta" href={withBase("/docs/quickstart/")}>Get started →</a>
+  </div>
+</nav>

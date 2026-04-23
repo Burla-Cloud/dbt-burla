@@ -1,0 +1,35 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { withBase } from "../../utils/url";
+---
+
+<DocsLayout
+  title="Documentation"
+  description="dbt-burla documentation."
+  lede="Everything you need to run dbt Python models on Burla. Start with the quickstart, then dig into how it works."
+  next={{ title: "Quickstart", href: withBase("/docs/quickstart/") }}
+>
+  <p>Pick where you want to go:</p>
+
+  <h2>Start here</h2>
+  <ul>
+    <li><a href={withBase("/docs/quickstart/")}>Quickstart</a> — get a working dbt pipeline where a Python model runs on Burla in under 5 minutes.</li>
+    <li><a href={withBase("/docs/how-it-works/")}>How it works</a> — the architecture and data flow end-to-end.</li>
+  </ul>
+
+  <h2>Guides</h2>
+  <ul>
+    <li><a href={withBase("/docs/configuration/")}>Configuration reference</a> — every <code>burla_*</code> knob, at profile and model level.</li>
+    <li><a href={withBase("/docs/troubleshooting/")}>Troubleshooting</a> — common errors and fixes.</li>
+  </ul>
+
+  <h2>Warehouses</h2>
+  <ul>
+    <li><a href={withBase("/warehouses/duckdb/")}>DuckDB</a> — for local dev, CI, and demos.</li>
+    <li><a href={withBase("/warehouses/snowflake/")}>Snowflake</a> — production Python models on elastic compute.</li>
+    <li><a href={withBase("/warehouses/bigquery/")}>BigQuery</a> — skip Dataproc startup entirely.</li>
+  </ul>
+
+  <h2>Examples</h2>
+  <p>See the <a href={withBase("/examples/")}>examples index</a> for four runnable reference projects.</p>
+</DocsLayout>

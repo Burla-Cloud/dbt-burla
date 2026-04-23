@@ -1,0 +1,150 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { Code } from "astro:components";
+import { withBase } from "../../utils/url";
+
+const arch = `                    ┌────────────────────────┐
+                    │    dbt run CLI         │
+                    └────────────┬───────────┘
+                                 ▼
+                    ┌────────────────────────┐
+                    │    BurlaXxxAdapter     │
+                    │  (subclasses the       │
+                    │   warehouse adapter)   │
+                    └────┬───────────────┬───┘
+                         │               │
+                SQL ─────┘               └───── Python
+                │                                  │
+                ▼                                  ▼
+     ┌────────────────────┐        ┌──────────────────────────┐
+     │ warehouse adapter  │        │  BurlaPythonJobHelper    │
+     │ (dbt-duckdb /      │        │                          │
+     │  dbt-snowflake /   │        │  1. read upstream refs   │──► warehouse
+     │  dbt-bigquery)     │        │  2. run model on Burla   │──► Burla cluster
+     └────────────────────┘        │  3. write df back        │──► warehouse
+                                   └──────────────────────────┘`;
+
+const dataflow = `                      dbt-running machine              Burla cluster
+                    ┌───────────────────────┐      ┌──────────────────┐
+  warehouse ──────► │ helper pulls upstream │      │                  │
+                    │   → pandas DataFrame  │      │                  │
+                    │                       │ ──►  │  model(dbt, None)│
+                    │   cloudpickle + data  │      │   runs on worker │
+                    │                       │ ◄──  │                  │
+                    │   df returned locally │      │                  │
+  warehouse ◄────── │ helper writes back    │      │                  │
+                    └───────────────────────┘      └──────────────────┘`;
+---
+
+<DocsLayout
+  title="How it works"
+  description="Exactly what happens between dbt run and the moment your Python model's DataFrame lands in the warehouse."
+  lede="Exactly what happens between dbt run and the moment your Python model's DataFrame lands in the warehouse. Read this when you want to understand the moving parts."
+  prev={{ title: "Quickstart", href: withBase("/docs/quickstart/") }}
+  next={{ title: "Configuration reference", href: withBase("/docs/configuration/") }}
+>
+  <h2>The pieces</h2>
+  <p>
+    dbt-burla ships three dbt adapters — <code>burla_duckdb</code>, <code>burla_snowflake</code>, and
+    <code>burla_bigquery</code> — each a subclass of the matching warehouse adapter. SQL runs
+    unchanged. Python models are intercepted and routed through <code>BurlaPythonJobHelper</code>.
+  </p>
+
+  <pre>{arch}</pre>
+
+  <h2>Python model lifecycle, step by step</h2>
+
+  <h3>1. dbt compiles the model</h3>
+  <p>dbt renders your Python file into <code>compiled_code</code>. The compiled form has your model plus dbt-generated ref/source/dbtObj wiring:</p>
+
+  <Code
+    code={`def model(dbt, session):
+    orders = dbt.ref("stg_orders")
+    return orders.assign(...)
+
+
+# Appended by dbt:
+def ref(*args, **kwargs):
+    refs = {"stg_orders": '"db"."schema"."stg_orders"'}
+    ...
+
+class dbtObj:
+    def __init__(self, load_df_function) -> None:
+        self.ref = ...
+        ...`}
+    lang="python"
+    theme="github-dark-dimmed"
+  />
+
+  <p>The key bit: dbt bakes a <code>{`{ref_name: resolved_relation_string}`}</code> dict into the compiled code. BurlaPythonJobHelper reads it via AST.</p>
+
+  <h3>2. submit_python_job is called</h3>
+  <p>
+    <code>BurlaXxxAdapter.submit_python_job(parsed_model, compiled_code)</code> runs. It hands off
+    to <code>BurlaPythonJobHelper.for_adapter(self, parsed_model)</code> and then to
+    <code>helper.submit(compiled_code)</code>.
+  </p>
+
+  <h3>3. Helper extracts upstream relations</h3>
+  <p>
+    <code>_extract_relation_maps(compiled_code)</code> walks the AST of the compiled code and pulls
+    out the literal <code>refs</code> and <code>sources</code> dicts.
+  </p>
+
+  <h3>4. Helper loads each upstream as a DataFrame</h3>
+  <p>
+    For each unique relation string, the warehouse backend
+    (<code>DuckDBBackend</code>, <code>SnowflakeBackend</code>, or <code>BigQueryBackend</code>)
+    runs <code>select * from …</code> and converts the result to a pandas DataFrame. These are held
+    in memory on the dbt-running machine.
+  </p>
+
+  <h3>5. Helper runs the model</h3>
+  <p>Two paths:</p>
+  <ul>
+    <li>
+      <strong>Fake mode</strong> (<code>burla_fake: true</code>): the helper executes the compiled
+      code in-process. Anything the user's code does with <code>remote_parallel_map</code> runs
+      in-process too.
+    </li>
+    <li>
+      <strong>Real mode</strong> (<code>burla_fake: false</code>): the helper packages
+      <code>compiled_code</code> plus the upstream DataFrames into a cloudpickleable closure and submits
+      it as a single input to <code>burla.remote_parallel_map(..., [None])</code>. If the user's model
+      body calls <code>remote_parallel_map</code> itself, that runs on further Burla workers.
+    </li>
+  </ul>
+
+  <h3>6. Helper validates and writes the result</h3>
+  <p>
+    The returned object must be a <code>pandas.DataFrame</code>. The helper writes it back to the
+    warehouse via <code>WarehouseBackend.write_from_dataframe(df, target, mode=...)</code>:
+  </p>
+  <ul>
+    <li><code>materialized: table</code> → <code>mode="replace"</code> (atomic <code>CREATE OR REPLACE</code>)</li>
+    <li><code>materialized: incremental</code> → <code>mode="append"</code></li>
+  </ul>
+
+  <h2>Where the data flows</h2>
+  <pre>{dataflow}</pre>
+
+  <p>
+    For small-to-medium upstream tables (say, under 1M rows) this round-trip is fine. For very
+    large tables, aggregate in SQL first so the Python model receives a manageable input.
+  </p>
+
+  <h2>Why a subclass per warehouse</h2>
+  <p>
+    dbt's adapter discovery is module-name-based: <code>type: burla_snowflake</code> in
+    <code>profiles.yml</code> causes dbt to <code>import dbt.adapters.burla_snowflake</code>. Rather
+    than wrapping warehouse adapters at runtime (fragile), we ship three sibling adapter modules
+    that each inherit from their warehouse's native adapter. This gives us every SQL feature of the
+    underlying adapter automatically, plus a clean
+    <code>pip install "dbt-burla[&lt;warehouse&gt;]"</code> story via extras.
+  </p>
+
+  <p>
+    See <a href="https://github.com/Burla-Cloud/dbt-burla/blob/main/src/dbt/adapters/burla/python_submissions.py">
+    src/dbt/adapters/burla/python_submissions.py</a> for the full helper implementation.
+  </p>
+</DocsLayout>

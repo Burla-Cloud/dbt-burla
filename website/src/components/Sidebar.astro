@@ -1,0 +1,58 @@
+---
+import { withBase } from "../utils/url";
+
+const { pathname } = Astro.url;
+const isActive = (p: string) => {
+  const full = withBase(p);
+  return pathname === full || pathname === full + "/";
+};
+
+const groups = [
+  {
+    label: "Start here",
+    items: [
+      { title: "Overview", href: "/docs/" },
+      { title: "Quickstart", href: "/docs/quickstart/" },
+      { title: "How it works", href: "/docs/how-it-works/" },
+    ],
+  },
+  {
+    label: "Guides",
+    items: [
+      { title: "Configuration reference", href: "/docs/configuration/" },
+      { title: "Troubleshooting", href: "/docs/troubleshooting/" },
+    ],
+  },
+  {
+    label: "Warehouses",
+    items: [
+      { title: "DuckDB", href: "/warehouses/duckdb/" },
+      { title: "Snowflake", href: "/warehouses/snowflake/" },
+      { title: "BigQuery", href: "/warehouses/bigquery/" },
+    ],
+  },
+  {
+    label: "Examples",
+    items: [
+      { title: "All examples", href: "/examples/" },
+      { title: "DuckDB quickstart", href: "/examples/quickstart-duckdb/" },
+      { title: "Snowflake ML scoring", href: "/examples/snowflake-ml-scoring/" },
+      { title: "BigQuery LLM enrichment", href: "/examples/bigquery-llm-enrichment/" },
+      { title: "Heavy compute fan-out", href: "/examples/heavy-compute-fanout/" },
+    ],
+  },
+];
+---
+
+<aside class="sidebar">
+  {groups.map((g) => (
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">{g.label}</div>
+      {g.items.map((item) => (
+        <a href={withBase(item.href)} class={`sidebar-link ${isActive(item.href) ? "active" : ""}`}>
+          {item.title}
+        </a>
+      ))}
+    </div>
+  ))}
+</aside>

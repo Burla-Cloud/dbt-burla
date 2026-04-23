@@ -1,0 +1,53 @@
+---
+import "../styles/docs.css";
+import BaseLayout from "./BaseLayout.astro";
+import Sidebar from "../components/Sidebar.astro";
+
+interface PagerLink {
+  title: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  lede?: string;
+  prev?: PagerLink;
+  next?: PagerLink;
+}
+
+const { title, description, lede, prev, next } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="docs-layout">
+    <Sidebar />
+    <main class="docs-main">
+      <article class="docs-content">
+        <h1>{title}</h1>
+        {lede && <p class="lede">{lede}</p>}
+        <slot />
+        {(prev || next) && (
+          <nav class="docs-footer">
+            {prev ? (
+              <a class="docs-pager" href={prev.href}>
+                <small>← Previous</small>
+                <span>{prev.title}</span>
+              </a>
+            ) : (
+              <span></span>
+            )}
+            {next ? (
+              <a class="docs-pager docs-pager--next" href={next.href}>
+                <small>Next →</small>
+                <span>{next.title}</span>
+              </a>
+            ) : (
+              <span></span>
+            )}
+          </nav>
+        )}
+      </article>
+    </main>
+  </div>
+</BaseLayout>

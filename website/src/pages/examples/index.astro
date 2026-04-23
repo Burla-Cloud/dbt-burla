@@ -1,0 +1,90 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { withBase } from "../../utils/url";
+
+const examples = [
+  {
+    tag: "DuckDB",
+    title: "Quickstart",
+    body: "Zero-setup, self-contained DuckDB project. No cloud, no cluster, no credentials. Runs in seconds.",
+    href: "/examples/quickstart-duckdb/",
+  },
+  {
+    tag: "Snowflake",
+    title: "ML scoring",
+    body: "Fan out ML inference to 500 Burla workers over a Snowflake table. Results land back in Snowflake.",
+    href: "/examples/snowflake-ml-scoring/",
+  },
+  {
+    tag: "BigQuery",
+    title: "LLM enrichment",
+    body: "Call an LLM per row across a BigQuery dataset with rate-limit-friendly worker counts.",
+    href: "/examples/bigquery-llm-enrichment/",
+  },
+  {
+    tag: "Advanced",
+    title: "Heavy compute fan-out",
+    body: "Use remote_parallel_map inside a Python model for massive per-row parallelism.",
+    href: "/examples/heavy-compute-fanout/",
+  },
+];
+---
+
+<DocsLayout
+  title="Examples"
+  description="Four runnable dbt-burla projects - from zero-setup to massive fan-out."
+  lede="Every example is a complete, runnable dbt project in the examples/ folder of the repo. Clone, cd in, and dbt run."
+  next={{ title: "DuckDB quickstart", href: withBase("/examples/quickstart-duckdb/") }}
+>
+  <blockquote class="callout">
+    <strong>How to use these:</strong> every example is a complete, runnable dbt project in the
+    <code>examples/</code> folder of the <a href="https://github.com/Burla-Cloud/dbt-burla/tree/main/examples">dbt-burla repo</a>. Clone the repo,
+    <code>cd</code> into an example, and run <code>dbt run --profiles-dir .</code>.
+  </blockquote>
+
+  <div class="examples-grid" style="margin: 2rem 0;">
+    {examples.map((ex) => (
+      <a class="ex-card" href={withBase(ex.href)}>
+        <span class="ex-tag">{ex.tag}</span>
+        <h3>{ex.title}</h3>
+        <p>{ex.body}</p>
+      </a>
+    ))}
+  </div>
+
+  <h2>What each example shows</h2>
+  <table>
+    <thead>
+      <tr><th>Example</th><th>Warehouse</th><th>Key pattern</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href={withBase("/examples/quickstart-duckdb/")}>Quickstart</a></td>
+        <td>DuckDB</td>
+        <td>Simple pandas enrichment; <code>burla_fake: true</code></td>
+      </tr>
+      <tr>
+        <td><a href={withBase("/examples/snowflake-ml-scoring/")}>Snowflake ML scoring</a></td>
+        <td>Snowflake</td>
+        <td><code>remote_parallel_map</code> + external model artifact</td>
+      </tr>
+      <tr>
+        <td><a href={withBase("/examples/bigquery-llm-enrichment/")}>BigQuery LLM enrichment</a></td>
+        <td>BigQuery</td>
+        <td><code>remote_parallel_map</code> + API call per row + per-row error handling</td>
+      </tr>
+      <tr>
+        <td><a href={withBase("/examples/heavy-compute-fanout/")}>Heavy compute fan-out</a></td>
+        <td>DuckDB</td>
+        <td>CPU-heavy computation fanned out across workers</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Need a different pattern?</h2>
+  <p>
+    Open a <a href="https://github.com/Burla-Cloud/dbt-burla/discussions">GitHub discussion</a> or
+    <a href="https://cal.com/jakez/burla">schedule a call</a>. If there's a common workload that
+    doesn't fit the examples above, we'll add it.
+  </p>
+</DocsLayout>

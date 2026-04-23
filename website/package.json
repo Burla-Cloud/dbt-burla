@@ -1,0 +1,19 @@
+{
+  "name": "dbt-burla-website",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.0",
+    "astro": "^5.0.0",
+    "sharp": "^0.33.5",
+    "shiki": "^1.24.0"
+  }
+}

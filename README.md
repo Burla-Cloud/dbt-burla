@@ -197,11 +197,12 @@ dbt Fusion (Rust) is tracked for a future release.
 
 **[burla-cloud.github.io/dbt-burla](https://burla-cloud.github.io/dbt-burla/)**
 
-- **[Quickstart](https://burla-cloud.github.io/dbt-burla/quickstart/)** - get a working pipeline in under 5 minutes
-- **[How it works](https://burla-cloud.github.io/dbt-burla/how-it-works/)** - end-to-end walkthrough of a Python model run
-- **[Configuration](https://burla-cloud.github.io/dbt-burla/configuration/)** - every `burla_*` knob, at profile and model level
+- **[Quickstart](https://burla-cloud.github.io/dbt-burla/docs/quickstart/)** - get a working pipeline in under 5 minutes
+- **[How it works](https://burla-cloud.github.io/dbt-burla/docs/how-it-works/)** - end-to-end walkthrough of a Python model run
+- **[Configuration](https://burla-cloud.github.io/dbt-burla/docs/configuration/)** - every `burla_*` knob, at profile and model level
 - Per-warehouse setup: **[DuckDB](https://burla-cloud.github.io/dbt-burla/warehouses/duckdb/)** · **[Snowflake](https://burla-cloud.github.io/dbt-burla/warehouses/snowflake/)** · **[BigQuery](https://burla-cloud.github.io/dbt-burla/warehouses/bigquery/)**
-- **[Troubleshooting](https://burla-cloud.github.io/dbt-burla/troubleshooting/)**
+- **[Troubleshooting](https://burla-cloud.github.io/dbt-burla/docs/troubleshooting/)**
+- **[Examples](https://burla-cloud.github.io/dbt-burla/examples/)**
 
 ## Examples
 

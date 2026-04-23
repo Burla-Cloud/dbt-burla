@@ -1,0 +1,108 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { Code } from "astro:components";
+import { withBase } from "../../utils/url";
+---
+
+<DocsLayout
+  title="Configuration reference"
+  description="Every burla_* knob, at profile and model level."
+  lede="Every burla_* knob, where to set it, what it does, and how profile-level defaults interact with per-model overrides. Model-level config wins."
+  prev={{ title: "How it works", href: withBase("/docs/how-it-works/") }}
+  next={{ title: "Troubleshooting", href: withBase("/docs/troubleshooting/") }}
+>
+  <h2>Profile-level (defaults for every Python model)</h2>
+  <p>Set these inside your <code>outputs.&lt;target&gt;</code> block in <code>profiles.yml</code>.</p>
+
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>burla_cluster_url</code></td><td>str</td><td><em>uses burla login creds</em></td><td>Override the cluster URL. Sets <code>BURLA_CLUSTER_DASHBOARD_URL</code>.</td></tr>
+      <tr><td><code>burla_default_workers</code></td><td>int</td><td><code>16</code></td><td>Max concurrent Burla workers per model.</td></tr>
+      <tr><td><code>burla_default_cpus_per_worker</code></td><td>int</td><td><code>1</code></td><td>CPUs per worker VM.</td></tr>
+      <tr><td><code>burla_default_ram_per_worker</code></td><td>int</td><td><code>None</code></td><td>RAM (GB) per worker VM.</td></tr>
+      <tr><td><code>burla_default_image</code></td><td>str</td><td><code>None</code></td><td>Custom Docker image for workers.</td></tr>
+      <tr><td><code>burla_default_timeout_s</code></td><td>int</td><td><code>3600</code></td><td>Per-model timeout in seconds.</td></tr>
+      <tr><td><code>burla_fake</code></td><td>bool</td><td><code>false</code></td><td>Run Python models in-process instead of on Burla.</td></tr>
+    </tbody>
+  </table>
+
+  <p>All other profile fields your warehouse adapter supports (<code>dbt-snowflake</code>, <code>dbt-bigquery</code>, <code>dbt-duckdb</code>) still work — dbt-burla is a subclass.</p>
+
+  <h3>Example (Snowflake)</h3>
+  <Code code={`my_project:
+  target: prod
+  outputs:
+    prod:
+      type: burla_snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: PROD
+      warehouse: PROD_WH
+      schema: analytics
+      threads: 8
+      # Burla:
+      burla_cluster_url: https://cluster.burla.dev
+      burla_default_workers: 200
+      burla_default_cpus_per_worker: 4
+      burla_default_image: us-docker.pkg.dev/my-proj/worker:latest`} lang="yaml" theme="github-dark-dimmed" />
+
+  <h2>Model-level (per-model overrides)</h2>
+  <p>Set inside the Python model via <code>dbt.config(...)</code> or in a YAML config block.</p>
+
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Type</th><th>Default</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>burla_workers</code></td><td>int</td><td>from profile</td><td>Override concurrent workers for this model.</td></tr>
+      <tr><td><code>burla_cpus_per_worker</code></td><td>int</td><td>from profile</td><td>CPUs per worker for this model.</td></tr>
+      <tr><td><code>burla_ram_per_worker</code></td><td>int</td><td>from profile</td><td>RAM (GB) per worker for this model.</td></tr>
+      <tr><td><code>burla_image</code></td><td>str</td><td>from profile</td><td>Override worker image for this model.</td></tr>
+      <tr><td><code>burla_timeout_s</code></td><td>int</td><td>from profile</td><td>Per-model timeout override.</td></tr>
+      <tr><td><code>burla_fake</code></td><td>bool</td><td>from profile</td><td>Override fake-mode for this model.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Example</h3>
+  <Code code={`def model(dbt, session):
+    dbt.config(
+        materialized="table",
+        burla_workers=500,
+        burla_cpus_per_worker=2,
+        burla_image="us-docker.pkg.dev/my-proj/heavy-worker:latest",
+    )
+    ...`} lang="python" theme="github-dark-dimmed" />
+
+  <p>Or via YAML:</p>
+
+  <Code code={`version: 2
+models:
+  - name: scored_customers
+    config:
+      materialized: table
+      burla_workers: 500
+      burla_cpus_per_worker: 2`} lang="yaml" theme="github-dark-dimmed" />
+
+  <h2>Supported materializations</h2>
+
+  <table>
+    <thead>
+      <tr><th>Materialization</th><th>Python</th><th>SQL</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>table</code></td><td>✓</td><td>✓</td><td>Writes replace the target atomically.</td></tr>
+      <tr><td><code>incremental</code></td><td>✓</td><td>✓</td><td>Python models must return a DataFrame of <em>new</em> rows; dbt-burla appends.</td></tr>
+      <tr><td><code>view</code></td><td>—</td><td>✓</td><td>Not meaningful for Python (dbt-core limitation).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Environment variables used</h2>
+  <ul>
+    <li><code>BURLA_CLUSTER_DASHBOARD_URL</code> — set by the adapter from <code>burla_cluster_url</code>.</li>
+    <li>Standard dbt / warehouse env vars (<code>SNOWFLAKE_*</code>, <code>BIGQUERY_PROJECT</code>, etc.) are honored.</li>
+  </ul>
+</DocsLayout>

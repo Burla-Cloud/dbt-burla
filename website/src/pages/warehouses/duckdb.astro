@@ -1,0 +1,50 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { Code } from "astro:components";
+import { withBase } from "../../utils/url";
+---
+
+<DocsLayout
+  title="DuckDB setup"
+  description="dbt-burla with DuckDB for zero-setup local dev, CI, or self-contained demos."
+  lede="Use burla_duckdb for zero-setup local development, CI integration tests, or self-contained demos. DuckDB is embedded, ephemeral, and single-machine — perfect for everything except production pipelines."
+  prev={{ title: "Overview", href: withBase("/docs/") }}
+  next={{ title: "Snowflake setup", href: withBase("/warehouses/snowflake/") }}
+>
+  <h2>Install</h2>
+  <Code code={`pip install "dbt-burla[duckdb]"`} lang="bash" theme="github-dark-dimmed" />
+  <p>This pulls in <code>dbt-duckdb</code>, <code>duckdb</code>, and the Burla client.</p>
+
+  <h2>profiles.yml</h2>
+  <p>Start from your existing <code>dbt-duckdb</code> profile and swap <code>type: duckdb</code> for <code>type: burla_duckdb</code>:</p>
+  <Code code={`my_project:
+  target: dev
+  outputs:
+    dev:
+      type: burla_duckdb
+      path: ./warehouse.duckdb
+      schema: main
+      threads: 1
+      burla_default_workers: 16
+      # burla_cluster_url: https://cluster.burla.dev
+      # burla_fake: true           # recommended for local dev / CI`} lang="yaml" theme="github-dark-dimmed" />
+  <p>Everything <code>dbt-duckdb</code> supports works: <code>path: ":memory:"</code>, <code>attach:</code>, <code>filesystems:</code>, <code>extensions:</code>, etc.</p>
+
+  <h2>When this is the right pick</h2>
+  <ul>
+    <li><strong>Local development</strong> — iterate on Python models without hitting a real cluster. Set <code>burla_fake: true</code>.</li>
+    <li><strong>CI</strong> — DuckDB is embedded, zero setup, and the full Python model code path still runs.</li>
+    <li><strong>Demos and tutorials</strong> — see the <a href={withBase("/examples/quickstart-duckdb/")}>quickstart example</a>.</li>
+  </ul>
+
+  <h2>When not to use it</h2>
+  <ul>
+    <li><strong>Production</strong> — DuckDB is single-machine and ephemeral. Use <code>burla_snowflake</code> or <code>burla_bigquery</code>.</li>
+  </ul>
+
+  <h2>Known caveats</h2>
+  <ul>
+    <li><code>view</code> materialization for Python is not supported (dbt-core limitation).</li>
+    <li>DuckDB connections are per-thread; dbt-burla reuses the thread connection already open for SQL.</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,350 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/landing.css";
+import { withBase } from "../utils/url";
+import { Code } from "astro:components";
+
+const hero = `import pandas as pd
+from burla import remote_parallel_map
+
+
+def score(row: dict) -> dict:
+    row["churn_score"] = my_model.predict(row)
+    return row
+
+
+def model(dbt, session):
+    dbt.config(
+        materialized="table",
+        burla_workers=500,           # 500 VMs, running score() in parallel
+        burla_cpus_per_worker=4,
+    )
+    customers = dbt.ref("stg_customers").to_dict("records")
+    scored = list(remote_parallel_map(score, customers))
+    return pd.DataFrame(scored)`;
+
+const features = [
+  {
+    icon: "⚡",
+    title: "No cluster to manage",
+    body:
+      "Burla gives you elastic compute as a function call. Workers start in <1s. No Snowpark session, no Databricks cluster, no Dataproc template.",
+  },
+  {
+    icon: "✓",
+    title: "Every dbt feature still works",
+    body:
+      "dbt-burla subclasses your warehouse adapter. Lineage, ref(), tests, docs, incremental models, is_incremental, and snapshots all work unchanged.",
+  },
+  {
+    icon: "🐳",
+    title: "Any Docker image, any hardware",
+    body:
+      "Per-model burla_cpus_per_worker, burla_ram_per_worker, burla_image. Big machines for heavy work, tiny ones for API calls, GPUs for ML.",
+  },
+  {
+    icon: "💨",
+    title: "Zero-setup local dev",
+    body:
+      "Set burla_fake: true and Python models run in-process. Perfect for local dev, unit tests, and CI — no cluster, no credentials.",
+  },
+  {
+    icon: "🗄️",
+    title: "Bring your warehouse",
+    body:
+      "First-class support for DuckDB, Snowflake, and BigQuery. SQL runs in your warehouse; only Python is routed to Burla.",
+  },
+  {
+    icon: "🛡️",
+    title: "Production ready",
+    body:
+      "mypy --strict, 97% test coverage, CI on Python 3.11 / 3.12 / 3.13, real integration tests against every warehouse.",
+  },
+];
+
+const compareRows = [
+  ["No Spark / JVM cluster to manage", [true, true, false, false]],
+  ["Sub-second worker startup", [true, false, false, false]],
+  ["Scales to 1,000+ VMs in one call", [true, false, false, false]],
+  ["Per-model CPU / RAM / GPU shape", [true, false, true, true]],
+  ["Any Docker image", [true, false, true, true]],
+  ["Runs locally with no cloud", [true, false, false, false]],
+  ["Works with DuckDB", [true, false, false, false]],
+  ["Works with Snowflake", [true, true, false, false]],
+  ["Works with BigQuery", [true, false, true, false]],
+  ["Distributed joins / shuffles", [false, true, true, true]],
+  ["Snowflake-native Python UDFs", [false, true, false, false]],
+] as const;
+
+const examples = [
+  {
+    tag: "DuckDB",
+    title: "Quickstart",
+    body: "Zero-setup, self-contained DuckDB project. Runs in seconds.",
+    href: "/examples/quickstart-duckdb/",
+  },
+  {
+    tag: "Snowflake",
+    title: "ML scoring",
+    body: "Fan out ML inference to 500 workers over a Snowflake table.",
+    href: "/examples/snowflake-ml-scoring/",
+  },
+  {
+    tag: "BigQuery",
+    title: "LLM enrichment",
+    body: "Per-row LLM API calls across a BigQuery dataset.",
+    href: "/examples/bigquery-llm-enrichment/",
+  },
+  {
+    tag: "Advanced",
+    title: "Heavy compute fan-out",
+    body: "remote_parallel_map inside a Python model for massive parallelism.",
+    href: "/examples/heavy-compute-fanout/",
+  },
+];
+
+const arch = `dbt CLI
+  │
+  ▼
+┌──────────────────────┐
+│   BurlaXxxAdapter    │
+│  (subclass of your   │
+│   warehouse adapter) │
+└───┬──────────────┬───┘
+    │              │
+SQL │              │ Python
+    ▼              ▼
+┌────────┐   ┌──────────────────────┐
+│warehouse│   │ BurlaPythonJobHelper │
+│ (runs   │   │ 1 read upstream refs │─►warehouse
+│  SQL as │   │ 2 submit to Burla    │─►Burla
+│  usual) │   │ 3 write result       │─►warehouse
+└────────┘    └──────────────────────┘`;
+---
+
+<BaseLayout
+  title="dbt-burla"
+  description="Run dbt Python models on a Burla cluster in 1 second. No Snowpark. No Dataproc. No Databricks."
+>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      <span>dbt Python models on elastic compute</span>
+    </div>
+    <h1 class="hero-title">Run dbt Python models on 1,000 CPUs in 1 second.</h1>
+    <p class="hero-sub">
+      <strong>dbt-burla</strong> is a dbt adapter that runs Python models on a
+      <a href="https://burla.dev">Burla</a> cluster instead of Snowpark, Dataproc, or Databricks —
+      while your SQL keeps running in DuckDB, Snowflake, or BigQuery.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn--primary" href={withBase("/docs/quickstart/")}>Get started →</a>
+      <a class="btn btn--secondary" href="https://github.com/Burla-Cloud/dbt-burla">
+        View on GitHub
+      </a>
+    </div>
+    <div class="hero-install">
+      <span class="prompt">$</span>
+      <span>pip install "dbt-burla[duckdb]"</span>
+    </div>
+    <div class="hero-code">
+      <div class="hero-code-header">
+        <span class="dots"><span></span><span></span><span></span></span>
+        <span class="file">models/scored_customers.py</span>
+      </div>
+      <Code code={hero} lang="python" theme="github-dark-dimmed" />
+    </div>
+  </section>
+
+  <!-- Problem -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">The problem</div>
+      <h2>dbt's Python support is gated behind Spark.</h2>
+      <p class="section-lede">
+        Every path assumes you want JVM-based distributed DataFrames. But most Python work
+        in a dbt DAG is per-row, embarrassingly parallel, and doesn't need a cluster.
+      </p>
+    </div>
+
+    <div class="problem-grid">
+      <div>
+        <p>Today, if you want Python in a dbt DAG you choose one of three:</p>
+        <ol class="problem-list">
+          <li>
+            <span class="num">01</span>
+            <span>
+              <strong>Snowpark</strong> — runs as a Snowflake stored procedure. Expensive compute,
+              no custom images, no GPUs.
+            </span>
+          </li>
+          <li>
+            <span class="num">02</span>
+            <span>
+              <strong>Dataproc</strong> — managed Google Cloud Spark. Minutes of startup per model.
+            </span>
+          </li>
+          <li>
+            <span class="num">03</span>
+            <span>
+              <strong>Databricks</strong> — a Spark cluster you maintain. Separate bill, separate
+              platform.
+            </span>
+          </li>
+        </ol>
+        <p style="margin-top: 1rem;">
+          All three assume distributed Spark. But ML scoring, LLM enrichment, per-row API calls,
+          feature engineering, and per-row simulation are <strong>embarrassingly parallel</strong>.
+          You don't need a JVM cluster for them.
+        </p>
+      </div>
+      <div>
+        <blockquote class="problem-pullquote">
+          "A 500-VM fan-out for an LLM enrichment model shouldn't require standing up a Spark
+          cluster."
+        </blockquote>
+        <p style="color: var(--text-muted);">
+          So either you stop using dbt for that step (losing lineage) or you accept the cost and
+          setup overhead of Spark for work that doesn't benefit from it. <strong>dbt-burla</strong>
+          is the third option.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">Why you'd use this</div>
+      <h2>Elastic Python compute, no Spark required.</h2>
+      <p class="section-lede">
+        Every dbt feature still works. Every Python model can have its own hardware. Local dev runs
+        in-process with zero setup.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+      {features.map((f) => (
+        <div class="feature">
+          <div class="feature-icon">{f.icon}</div>
+          <h3>{f.title}</h3>
+          <p>{f.body}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">How it works</div>
+      <h2>Change one line in your profile.</h2>
+      <p class="section-lede">
+        SQL models keep running in your warehouse. Python models go through the Burla job helper:
+        read upstream DataFrames, ship to Burla, write the result back.
+      </p>
+    </div>
+
+    <div class="howit">
+      <div>
+        <Code
+          code={`jaffle_shop:
+  target: prod
+  outputs:
+    prod:
+      type: burla_snowflake
+      # ...your normal Snowflake config...
+      burla_default_workers: 100
+      burla_default_cpus_per_worker: 4`}
+          lang="yaml"
+          title="profiles.yml"
+          theme="github-dark-dimmed"
+        />
+        <p style="margin-top: 1.5rem;">
+          dbt-burla is a <strong>subclass</strong> of the warehouse adapter — every SQL feature you
+          already use still works exactly as before.
+        </p>
+        <p style="margin-top: 0.5rem;">
+          <a class="btn btn--secondary" href={withBase("/docs/how-it-works/")}>
+            Deep dive into the architecture →
+          </a>
+        </p>
+      </div>
+      <div>
+        <pre>{arch}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compare -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">vs the alternatives</div>
+      <h2>Designed for per-row Python, not Spark workloads.</h2>
+      <p class="section-lede">
+        dbt-burla isn't trying to replace Spark for distributed joins. It's optimized for the
+        per-row Python work you already do in dbt models — done fast, cheap, and without a cluster
+        to manage.
+      </p>
+    </div>
+
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="us">dbt-burla</th>
+            <th>Snowpark</th>
+            <th>Dataproc</th>
+            <th>Databricks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {compareRows.map(([label, values]) => (
+            <tr>
+              <td>{label}</td>
+              {(values as readonly boolean[]).map((v) => (
+                <td class={v ? "yes" : "no"}>{v ? "✓" : "—"}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Examples -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-label">Runnable examples</div>
+      <h2>Four reference projects, from zero-setup to massive fan-out.</h2>
+      <p class="section-lede">
+        Every example is a complete dbt project you can clone and run. Start with the DuckDB
+        quickstart — no cloud, no cluster.
+      </p>
+    </div>
+
+    <div class="examples-grid">
+      {examples.map((ex) => (
+        <a class="ex-card" href={withBase(ex.href)}>
+          <span class="ex-tag">{ex.tag}</span>
+          <h3>{ex.title}</h3>
+          <p>{ex.body}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to run Python in dbt without Spark?</h2>
+    <p>One <code>pip install</code>, one line in your profile. No cluster to configure.</p>
+    <div class="cta-actions">
+      <a class="btn btn--primary" href={withBase("/docs/quickstart/")}>Get started in 60 seconds →</a>
+      <a class="btn btn--secondary" href="https://github.com/Burla-Cloud/dbt-burla">
+        Star on GitHub
+      </a>
+    </div>
+  </section>
+</BaseLayout>

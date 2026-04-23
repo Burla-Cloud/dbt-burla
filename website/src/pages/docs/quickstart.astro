@@ -1,0 +1,118 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { Code } from "astro:components";
+import { withBase } from "../../utils/url";
+---
+
+<DocsLayout
+  title="Quickstart"
+  description="Get a working dbt pipeline where a Python model runs on Burla in under 5 minutes."
+  lede="The shortest path from nothing to 'I saw a dbt Python model run on Burla'. Two paths — one needs no cloud, one connects to your real warehouse."
+  prev={{ title: "Overview", href: withBase("/docs/") }}
+  next={{ title: "How it works", href: withBase("/docs/how-it-works/") }}
+>
+  <blockquote class="callout">
+    <strong>Goal:</strong> get a working dbt pipeline where a Python model runs on Burla. In under 5 minutes. No cluster required.
+  </blockquote>
+
+  <h2>Option A: zero-setup (DuckDB + fake Burla)</h2>
+
+  <p>No cluster, no cloud, just <code>pip</code> and <code>dbt run</code>.</p>
+
+  <Code
+    code={`git clone https://github.com/Burla-Cloud/dbt-burla.git
+cd dbt-burla/examples/01-quickstart-duckdb
+pip install "dbt-burla[duckdb]"
+dbt run --profiles-dir .`}
+    lang="bash"
+    theme="github-dark-dimmed"
+  />
+
+  <p>That's it. You now have three models in <code>warehouse.duckdb</code>:</p>
+  <ul>
+    <li><code>stg_orders</code> — a SQL view</li>
+    <li><code>enriched_orders</code> — a Python model that runs in-process (because <code>burla_fake: true</code>)</li>
+    <li><code>order_summary</code> — a downstream SQL aggregate</li>
+  </ul>
+
+  <p>Open the warehouse:</p>
+
+  <Code
+    code={`duckdb warehouse.duckdb
+> select * from main.enriched_orders;`}
+    lang="bash"
+    theme="github-dark-dimmed"
+  />
+
+  <h2>Option B: real Burla cluster + your warehouse</h2>
+
+  <h3>1. Install</h3>
+  <Code code={`pip install "dbt-burla[snowflake]"   # or [bigquery] / [duckdb]`} lang="bash" theme="github-dark-dimmed" />
+
+  <h3>2. Configure Burla</h3>
+  <Code code={`burla login`} lang="bash" theme="github-dark-dimmed" />
+
+  <h3>3. Point profiles.yml at dbt-burla</h3>
+  <p>
+    Every field your existing <code>dbt-snowflake</code> / <code>dbt-bigquery</code> / <code>dbt-duckdb</code> profile uses
+    still works — just change <code>type:</code> to the Burla variant and add the <code>burla_*</code> knobs.
+  </p>
+
+  <Code
+    code={`my_project:
+  target: prod
+  outputs:
+    prod:
+      type: burla_snowflake        # was: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: PROD_DB
+      warehouse: PROD_WH
+      schema: analytics
+      threads: 4
+
+      # Burla-specific
+      burla_cluster_url: https://my-cluster.burla.dev
+      burla_default_workers: 100
+      burla_default_cpus_per_worker: 4`}
+    lang="yaml"
+    theme="github-dark-dimmed"
+  />
+
+  <h3>4. Write a Python model</h3>
+  <Code
+    code={`# models/enriched_orders.py
+import pandas as pd
+from burla import remote_parallel_map
+
+
+def enrich(row: dict) -> dict:
+    row["amount_cents"] = int((row["amount"] or 0) * 100)
+    return row
+
+
+def model(dbt, session):
+    dbt.config(materialized="table")
+    orders = dbt.ref("stg_orders")
+    enriched = list(remote_parallel_map(enrich, orders.to_dict("records")))
+    return pd.DataFrame(enriched)`}
+    lang="python"
+    theme="github-dark-dimmed"
+  />
+
+  <h3>5. Run it</h3>
+  <Code code={`dbt run --select enriched_orders`} lang="bash" theme="github-dark-dimmed" />
+
+  <p>
+    Watch Burla spin up workers and run your model. The result lands as a normal table in Snowflake,
+    which downstream SQL models can <code>ref()</code> like any other.
+  </p>
+
+  <h2>Next steps</h2>
+  <ul>
+    <li><a href={withBase("/docs/configuration/")}>Configuration reference</a> — fine-tune every <code>burla_*</code> knob.</li>
+    <li><a href={withBase("/docs/how-it-works/")}>How it works</a> — understand the data flow end-to-end.</li>
+    <li><a href={withBase("/examples/")}>Examples</a> — four runnable reference projects.</li>
+  </ul>
+</DocsLayout>

@@ -1,0 +1,65 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { Code } from "astro:components";
+import { withBase } from "../../utils/url";
+---
+
+<DocsLayout
+  title="Snowflake setup"
+  description="Run dbt Python models on Burla instead of Snowpark, while your dbt-snowflake project stays untouched."
+  lede="You already run production dbt on Snowflake but want your Python models to run on elastic Burla workers instead of Snowpark. SQL models continue to run in Snowflake exactly as before — only Python is routed to Burla."
+  prev={{ title: "DuckDB setup", href: withBase("/warehouses/duckdb/") }}
+  next={{ title: "BigQuery setup", href: withBase("/warehouses/bigquery/") }}
+>
+  <h2>Install</h2>
+  <Code code={`pip install "dbt-burla[snowflake]"`} lang="bash" theme="github-dark-dimmed" />
+  <p>This pulls in <code>dbt-snowflake</code>, <code>snowflake-connector-python[pandas]</code>, and the Burla client.</p>
+
+  <h2>profiles.yml</h2>
+  <p>Swap <code>type: snowflake</code> for <code>type: burla_snowflake</code>:</p>
+  <Code code={`my_project:
+  target: prod
+  outputs:
+    prod:
+      type: burla_snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'SYSADMIN') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      schema: analytics
+      threads: 8
+
+      # Burla-specific:
+      burla_cluster_url: https://cluster.burla.dev
+      burla_default_workers: 200
+      burla_default_cpus_per_worker: 4`} lang="yaml" theme="github-dark-dimmed" />
+
+  <p>All of <code>dbt-snowflake</code>'s auth flavors work (password, OAuth, key pair, externalbrowser, etc.) — dbt-burla inherits the full credentials class.</p>
+
+  <h2>Data movement</h2>
+  <p>
+    For Python models, upstream tables are pulled into pandas on the dbt-running machine via
+    <code>snowflake-connector-python</code>'s <code>fetch_pandas_all()</code>. Results are uploaded
+    back via <code>write_pandas</code> through a staging table for atomic swap.
+  </p>
+
+  <p>For very large upstream tables (hundreds of millions of rows), aggregate in SQL first.</p>
+
+  <h2>Running SQL models</h2>
+  <p>SQL models run in Snowflake exactly as they would under vanilla <code>dbt-snowflake</code>.</p>
+
+  <h2>Costs</h2>
+  <p>Two cost sources:</p>
+  <ol>
+    <li><strong>Snowflake warehouse time</strong> to read/write the DataFrames.</li>
+    <li><strong>Burla worker time</strong> to run the Python model.</li>
+  </ol>
+
+  <h2>Known caveats</h2>
+  <ul>
+    <li>Iceberg table format is not yet supported for Python models (mirrors <code>dbt-snowflake</code>'s own limitation).</li>
+    <li><code>write_pandas</code> uses <code>auto_create_table=True</code> — DataFrame schema determines target table schema.</li>
+  </ul>
+</DocsLayout>
