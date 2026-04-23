@@ -1,5 +1,7 @@
 # DuckDB setup
 
+> **Use this warehouse when** you want zero-setup local development, CI integration tests, or a self-contained demo. DuckDB is embedded, ephemeral, and single-machine - perfect for everything except production pipelines.
+
 `burla_duckdb` wraps [`dbt-duckdb`](https://github.com/duckdb/dbt-duckdb)
 and routes Python models through Burla.
 

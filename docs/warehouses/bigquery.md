@@ -1,5 +1,7 @@
 # BigQuery setup
 
+> **Use this warehouse when** you already run production dbt on BigQuery but want your Python models to run on elastic Burla workers instead of Dataproc Spark. Skip the minutes-long Dataproc startup cost - Burla workers are ready in under a second.
+
 `burla_bigquery` wraps [`dbt-bigquery`](https://github.com/dbt-labs/dbt-bigquery)
 and routes Python models to Burla instead of Dataproc.
 

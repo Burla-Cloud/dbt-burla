@@ -13,77 +13,127 @@ hide:
 </p>
 
 <div class="hero-buttons" markdown>
-[Get started in 60 seconds :material-rocket-launch:](quickstart.md){ .md-button .md-button--primary }
+[Get started :material-rocket-launch:](quickstart.md){ .md-button .md-button--primary }
 [View on GitHub :fontawesome-brands-github:](https://github.com/Burla-Cloud/dbt-burla){ .md-button }
+[Install from PyPI :fontawesome-brands-python:](https://pypi.org/project/dbt-burla/){ .md-button }
 </div>
 
-```python title="models/customer_features.py"
+</div>
+
+## The problem
+
+dbt's Python model support is **gated behind Spark**.
+
+If you want to run Python in a dbt DAG today, you pick one of three:
+
+1. **Snowpark** - Python runs as a Snowflake stored procedure. Expensive compute. No custom images. No GPUs.
+2. **Dataproc** - Python runs on managed Google Cloud Spark. Minutes of startup per model.
+3. **Databricks** - Python runs on a Databricks cluster you maintain. Separate bill, separate platform.
+
+All three assume **distributed Spark DataFrames**.
+
+But most Python work in a dbt DAG *isn't* that. It's embarrassingly-parallel per-row work:
+
+- ML scoring: `model.predict(row)` on every row
+- LLM enrichment: API call per row
+- Feature engineering: 20 new columns per row
+- Per-row simulation, classification, embedding, OCR, geocoding
+
+**This doesn't need a JVM Spark cluster.** It needs a lot of Python processes running at the same time.
+
+## The solution
+
+`dbt-burla` is a dbt adapter that runs Python models on a [Burla](https://burla.dev) cluster. Burla is a Python-first compute platform: one function call gives you up to 10,000 parallel VMs in about a second. Any Docker image. Any CPU/RAM shape. Any GPU.
+
+```python title="models/scored_customers.py"
 import pandas as pd
 from burla import remote_parallel_map
 
 
 def score(row: dict) -> dict:
-    row["score"] = my_model.predict(row)
+    row["churn_score"] = my_model.predict(row)
     return row
 
 
 def model(dbt, session):
     dbt.config(
         materialized="table",
-        burla_workers=500,           # 500 VMs in parallel
+        burla_workers=500,           # 500 VMs, each runs score() on a batch
         burla_cpus_per_worker=4,
     )
-    rows = dbt.ref("stg_customers").to_dict("records")
-    scored = list(remote_parallel_map(score, rows))
+    customers = dbt.ref("stg_customers").to_dict("records")
+    scored = list(remote_parallel_map(score, customers))
     return pd.DataFrame(scored)
 ```
 
-</div>
+SQL keeps running in your warehouse, unchanged. Python runs on Burla. Lineage, `ref()`, tests, docs, incremental models - everything dbt-core gives you - all still work.
 
-## Why
-
-dbt's Python model support is gated behind Snowpark, Dataproc, or Databricks - so if you want to drop a Python model into your dbt DAG you have to stand up (and pay for) a Spark cluster, even when the work is embarrassingly parallel per-row: ML scoring, API calls, LLM enrichment, feature engineering, simulation.
-
-**`dbt-burla` gives you a third option**: let dbt's DAG, testing, lineage, and documentation stay intact, and let Burla's elastic compute run the Python without Spark.
+## Why you'd actually use this
 
 <div class="grid cards" markdown>
 
--   :material-lightning-bolt:{ .lg .middle } **Elastic, per-function hardware**
+-   :material-lightning-bolt:{ .lg .middle } **No cluster to manage**
 
     ---
 
-    Scale each Python model independently to hundreds or thousands of Burla workers.  
-    Set `burla_workers`, `burla_cpus_per_worker`, and `burla_image` per model.
+    No Snowpark session. No Databricks cluster. No Dataproc template. Burla gives you elastic compute as a function call: `remote_parallel_map(fn, inputs)`. Workers start in <1s.
 
--   :material-database:{ .lg .middle } **Bring your warehouse**
-
-    ---
-
-    First-class support for **DuckDB**, **Snowflake**, and **BigQuery**. SQL models run unchanged; only Python is routed to Burla.
-
--   :material-check-all:{ .lg .middle } **Everything dbt gives you**
+-   :material-check-all:{ .lg .middle } **Every dbt feature still works**
 
     ---
 
-    Lineage, `ref()`, `source()`, tests, docs, incremental models, `is_incremental`, and snapshots all work exactly as in dbt-core.
+    `dbt-burla` is a **subclass** of your warehouse adapter. SQL models run unchanged. Lineage, `ref()`, `source()`, tests, docs, incremental models, `is_incremental`, snapshots - all inherited from dbt-core.
+
+-   :material-docker:{ .lg .middle } **Any Docker image, any hardware**
+
+    ---
+
+    `burla_cpus_per_worker=64` for heavy compute. `burla_image="..."` for your own dependencies baked in. `burla_ram_per_worker=128` for in-memory work. Every Python model has its own shape.
 
 -   :material-flash:{ .lg .middle } **Zero-setup local dev**
 
     ---
 
-    Set `burla_fake: true` to run Python models in-process - no cluster, no cloud, no credentials. Perfect for local dev and CI.
+    `burla_fake: true` runs Python models in-process with no cluster, no cloud, no credentials. Perfect for local dev, tests, and CI. Your whole dbt project runs on your laptop.
 
--   :material-docker:{ .lg .middle } **Any Docker image**
+-   :material-database:{ .lg .middle } **Bring your warehouse**
 
     ---
 
-    Set `burla_image` per model to ship with your own dependencies, CUDA, proprietary libraries, or ML models baked in.
+    First-class support for **DuckDB**, **Snowflake**, and **BigQuery**. Write Python the same way; dbt-burla handles the pandas ⇄ warehouse transfer for you.
 
 -   :material-shield-check:{ .lg .middle } **Production ready**
 
     ---
 
-    `mypy --strict`, 97% test coverage, CI on Python 3.11/3.12/3.13, dbt-core 1.8 and 1.9, real integration tests against every warehouse.
+    `mypy --strict`, 97% test coverage, CI on Python 3.11 / 3.12 / 3.13, dbt-core 1.8 and 1.9, real integration tests against every warehouse.
+
+</div>
+
+## When `dbt-burla` is NOT the right pick
+
+- **All SQL, no Python.** You don't need this. Stick with `dbt-duckdb` / `dbt-snowflake` / `dbt-bigquery`.
+- **Terabyte-scale distributed joins.** That's Spark's job. Use Snowpark or Databricks for those shuffles.
+- **Unsupported warehouse.** Postgres, Redshift, Fabric, etc. aren't supported yet. [File an issue](https://github.com/Burla-Cloud/dbt-burla/issues).
+- **Very large upstream inputs.** The Python model pulls the upstream table through pandas on your dbt runner. For 100M+ row inputs, aggregate in SQL first.
+
+## `dbt-burla` vs the alternatives
+
+<div class="compat-table" markdown>
+
+|                                              | `dbt-burla` | Snowpark | Dataproc | Databricks |
+| :------------------------------------------- | :---------: | :------: | :------: | :--------: |
+| No Spark / JVM cluster to manage             |      ✓      |    ✓     |          |            |
+| Sub-second worker startup                    |      ✓      |          |          |            |
+| Scales to 1,000+ VMs in one call             |      ✓      |          |          |            |
+| Per-model CPU / RAM / GPU shape              |      ✓      |          |    ✓     |     ✓      |
+| Any Docker image                             |      ✓      |          |    ✓     |     ✓      |
+| Runs locally with no cloud                   |      ✓      |          |          |            |
+| Works with DuckDB                            |      ✓      |          |          |            |
+| Works with Snowflake                         |      ✓      |    ✓     |          |            |
+| Works with BigQuery                          |      ✓      |          |    ✓     |            |
+| Distributed joins / shuffles                 |             |    ✓     |    ✓     |     ✓      |
+| Snowflake-native Python UDFs                 |             |    ✓     |          |            |
 
 </div>
 
@@ -116,7 +166,7 @@ dbt run --profiles-dir .
 
 Three models run end-to-end: a SQL view, a Python `table` model, and a downstream SQL aggregate. No cloud, no cluster, no credentials. Flip `burla_fake: false` and your Python models run on a real Burla cluster.
 
-[Full quickstart guide :material-arrow-right:](quickstart.md){ .md-button }
+[Full quickstart :material-arrow-right:](quickstart.md){ .md-button }
 
 ## How it works
 
@@ -129,10 +179,10 @@ flowchart LR
 
     cli --> adapter
     adapter -- SQL models --> wh
-    adapter -- "read upstream" --> wh
-    adapter -- "submit model()" --> burla
+    adapter -- "1 read upstream" --> wh
+    adapter -- "2 submit model()" --> burla
     burla -- DataFrame --> adapter
-    adapter -- "write result" --> wh
+    adapter -- "3 write result" --> wh
 ```
 
 [Deep dive :material-arrow-right:](how-it-works.md){ .md-button }

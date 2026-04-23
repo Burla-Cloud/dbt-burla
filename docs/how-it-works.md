@@ -1,5 +1,7 @@
 # How it works
 
+> **What this page covers:** exactly what happens between `dbt run` and the moment your Python model's DataFrame lands back in the warehouse. Read this when you want to understand the moving parts or debug something unexpected.
+
 A deep dive into what actually happens when `dbt run` hits a Python model
 in a `dbt-burla` project.
 

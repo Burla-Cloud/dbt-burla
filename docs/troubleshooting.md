@@ -1,5 +1,7 @@
 # Troubleshooting
 
+> **When to read this page:** something broke. Start here before opening an issue - most problems are one of the patterns below.
+
 Common issues and fixes.
 
 ## "Could not find adapter type burla_*"

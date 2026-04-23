@@ -1,5 +1,7 @@
 # Configuration reference
 
+> **What this page covers:** every `burla_*` knob, where to set it, what it does, and how profile-level defaults interact with per-model overrides. Use this as the single source of truth while tuning your pipeline.
+
 Every `burla_*` knob you can set, at both the **profile** level
 (`profiles.yml`) and the **model** level (`dbt.config(...)` or
 `schema.yml`). Model-level config wins.

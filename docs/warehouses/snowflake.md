@@ -1,5 +1,7 @@
 # Snowflake setup
 
+> **Use this warehouse when** you already run production dbt on Snowflake but want your Python models to run on elastic Burla workers instead of Snowpark. SQL models continue to run in Snowflake exactly as before - only Python is routed to Burla.
+
 `burla_snowflake` wraps [`dbt-snowflake`](https://github.com/dbt-labs/dbt-snowflake)
 and routes Python models to Burla instead of Snowpark.
 

@@ -1,5 +1,7 @@
 # Quickstart
 
+> **Goal:** get a working dbt pipeline where a Python model runs on Burla. In under 5 minutes. No cluster required.
+
 The shortest path from nothing to "I saw a dbt Python model run on Burla".
 
 ## Option A: zero-setup (DuckDB, fake Burla)
