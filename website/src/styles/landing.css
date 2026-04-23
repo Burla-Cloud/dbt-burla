@@ -479,18 +479,20 @@
 
 .beforeafter {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   align-items: stretch;
   margin-top: 1.5rem;
+  position: relative;
+}
+
+.beforeafter-arrow {
+  display: none;
 }
 
 @media (max-width: 62rem) {
   .beforeafter {
     grid-template-columns: 1fr;
-  }
-  .beforeafter-arrow {
-    display: none;
   }
 }
 

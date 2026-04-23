@@ -8,9 +8,14 @@ const isActive = (p: string) => pathname === withBase(p) || pathname.startsWith(
 <nav class="topnav">
   <div class="topnav-inner">
     <a class="topnav-brand" href={withBase("/")}>
-      <img src={withBase("/logo_small.svg")} alt="Burla" />
-      <span class="brand-sep">/</span>
-      <span class="brand-sub">dbt-burla</span>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4Zm-9 9h7v7H4v-7Zm9 0h7v7h-7v-7Z" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="dim">dbt</span><span>-burla</span>
+      </span>
     </a>
     <ul class="topnav-links">
       <li>

@@ -380,13 +380,8 @@ const faqs = [
           <Code code={snowparkCode} lang="python" theme="github-dark-dimmed" />
         </div>
         <div class="ba-notes">
-          <strong>~30s</strong> cold start. Serial execution. Limited to Snowflake's package registry.
-          Test loop is hitting Snowflake.
+          <strong>~30s</strong> cold start · Serial execution · Limited to Snowflake's package registry · Test loop hits Snowflake
         </div>
-      </div>
-
-      <div class="beforeafter-arrow">
-        <Icon name="arrow-right" />
       </div>
 
       <div class="ba-card">
@@ -398,8 +393,7 @@ const faqs = [
           <Code code={burlaCode} lang="python" theme="github-dark-dimmed" />
         </div>
         <div class="ba-notes">
-          <strong>&lt;1s</strong> cold start. 200-way parallel via <code>remote_parallel_map</code>.
-          Any Python package. <code>burla_fake: true</code> for local dev.
+          <strong>&lt;1s</strong> cold start · 200-way parallel · Any Python package · <code>burla_fake: true</code> for local dev
         </div>
       </div>
     </div>
