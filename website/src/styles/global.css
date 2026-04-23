@@ -251,8 +251,9 @@ strong {
 .topnav-brand:hover { color: var(--text); }
 
 .topnav-brand img {
-  height: 1.4rem;
+  height: 1.6rem;
   width: auto;
+  display: block;
 }
 
 .topnav-links {
