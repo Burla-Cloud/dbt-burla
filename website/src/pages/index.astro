@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Icon from "../components/Icon.astro";
-import Architecture from "../components/Architecture.astro";
 import "../styles/landing.css";
 import { withBase } from "../utils/url";
 import { Code } from "astro:components";
@@ -94,40 +93,6 @@ const features = [
     icon: "shield",
     title: "Production ready",
     body: "mypy --strict, 97% test coverage, CI on Python 3.11 / 3.12 / 3.13, real integration tests against every warehouse, semantic versioning.",
-  },
-];
-
-// ───────── Personas ─────────
-const personas = [
-  {
-    tag: "ML / Analytics Engineering",
-    title: "You want Python in dbt — without Spark",
-    body: "You already run dbt, but your team has ML inference, LLM enrichment, or heavy feature engineering that doesn't belong in SQL.",
-    bullets: [
-      "Write a normal dbt Python model",
-      "Scale to hundreds of workers per model",
-      "Lineage and tests stay intact",
-    ],
-  },
-  {
-    tag: "Data Platform Teams",
-    title: "You're tired of managing Snowpark / Dataproc",
-    body: "Standing up a Spark cluster for work that's embarrassingly parallel is wasteful. You want elastic, on-demand compute you don't have to babysit.",
-    bullets: [
-      "No cluster to provision or pay for idle",
-      "Sub-second worker startup",
-      "Per-model hardware, any image",
-    ],
-  },
-  {
-    tag: "Small Teams / Startups",
-    title: "You don't have a platform team",
-    body: "You want to build a modern ML/analytics pipeline, but \"stand up and run Databricks\" isn't in your budget. You need something that just works.",
-    bullets: [
-      "pip install, one line of YAML",
-      "Local dev with burla_fake: true",
-      "Scale when you need it",
-    ],
   },
 ];
 
@@ -397,52 +362,6 @@ const faqs = [
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- ───────────────────────── PERSONAS ───────────────────────── -->
-  <section class="section">
-    <div class="section-header">
-      <div class="section-eyebrow">Who this is for</div>
-      <h2>If any of these sound like you, keep reading.</h2>
-      <p class="section-lede">
-        dbt-burla is designed for teams that already use dbt and want to add real Python work to
-        their DAG — without the complexity tax of running Spark.
-      </p>
-    </div>
-
-    <div class="personas">
-      {personas.map((p) => (
-        <div class="persona">
-          <div class="tag">{p.tag}</div>
-          <h3>{p.title}</h3>
-          <p>{p.body}</p>
-          <ul>
-            {p.bullets.map((b) => <li>{b}</li>)}
-          </ul>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- ───────────────────────── ARCHITECTURE ───────────────────────── -->
-  <section class="section">
-    <div class="section-header">
-      <div class="section-eyebrow">How it works</div>
-      <h2>Change one line in your profile.</h2>
-      <p class="section-lede">
-        SQL models keep running in your warehouse. Python models go through the Burla job helper:
-        read upstream DataFrames, ship to Burla, write the result back.
-      </p>
-    </div>
-
-    <Architecture />
-
-    <p style="margin-top: 1.5rem;">
-      <a class="btn btn--secondary" href={withBase("/docs/how-it-works/")}>
-        Deep dive into the architecture
-        <Icon name="arrow-right" />
-      </a>
-    </p>
   </section>
 
   <!-- ───────────────────────── COMPARISON ───────────────────────── -->
