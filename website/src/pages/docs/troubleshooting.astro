@@ -31,7 +31,7 @@ const toc = [
     <code>pip install "dbt-burla[&lt;warehouse&gt;]"</code> didn't complete, or you're in a
     different virtualenv than dbt itself. Verify:
   </p>
-  <Code code={`python -c "from dbt.adapters.burla_duckdb import Plugin; print(Plugin)"`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`python -c "from dbt.adapters.burla_duckdb import Plugin; print(Plugin)"`} lang="bash" theme="github-light" />
 
   <h2 id="indentation">"IndentationError: unexpected indent" during a Python model</h2>
   <p>dbt emits compiled code with leading whitespace; dbt-burla strips this automatically. If you're seeing this, you're on a very old version — upgrade.</p>
@@ -45,7 +45,7 @@ const toc = [
     <li><code>burla_cluster_url</code> in your profile matches your cluster.</li>
     <li><code>BURLA_CLUSTER_DASHBOARD_URL</code> env var isn't set to something stale.</li>
   </ol>
-  <Code code={`python -c "from burla import get_cluster_dashboard_url; print(get_cluster_dashboard_url())"`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`python -c "from burla import get_cluster_dashboard_url; print(get_cluster_dashboard_url())"`} lang="bash" theme="github-light" />
 
   <h2 id="not-df">"Python model must return a pandas DataFrame"</h2>
   <ul>
@@ -77,12 +77,12 @@ const toc = [
 filterwarnings = [
     "ignore::ResourceWarning",
     "ignore::pytest.PytestUnraisableExceptionWarning",
-]`} lang="toml" theme="github-dark-dimmed" />
+]`} lang="toml" theme="github-light" />
 
   <h2 id="sf-binding">Snowflake: "Binding data in type is not supported"</h2>
   <p><code>write_pandas</code> can't handle every pandas dtype. Convert before returning:</p>
   <Code code={`df["my_col"] = df["my_col"].astype(str)
-return df`} lang="python" theme="github-dark-dimmed" />
+return df`} lang="python" theme="github-light" />
 
   <h2 id="bq-access">BigQuery: "Access Denied" during load_table_from_dataframe</h2>
   <p>Service account needs both <code>bigquery.dataEditor</code> and <code>bigquery.jobUser</code>. <code>dbt debug</code> only tests SELECT.</p>

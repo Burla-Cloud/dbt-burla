@@ -25,11 +25,11 @@ const toc = [
   <Code code={`pip install "dbt-burla[snowflake]"
 cd dbt-burla/examples/02-snowflake-ml-scoring
 cp profiles.example.yml profiles.yml
-$EDITOR profiles.yml`} lang="bash" theme="github-dark-dimmed" />
+$EDITOR profiles.yml`} lang="bash" theme="github-light" />
   <p>Make sure <code>burla login</code> is configured (or set <code>burla_fake: true</code> in <code>profiles.yml</code> to run in-process against your Snowflake).</p>
 
   <h2 id="run">Run it</h2>
-  <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-light" />
 
   <h2 id="the-model">The model</h2>
   <Code code={`# models/scored_customers.py
@@ -59,7 +59,7 @@ def model(dbt, session):
 
     customers = dbt.ref("stg_customers").to_dict("records")
     scored = list(remote_parallel_map(score, customers))
-    return pd.DataFrame(scored)`} lang="python" theme="github-dark-dimmed" />
+    return pd.DataFrame(scored)`} lang="python" theme="github-light" />
   <p>In a real project, <code>score()</code> would load a cached scikit-learn / XGBoost / PyTorch model (from GCS, S3, or baked into <code>burla_image</code>) and call <code>.predict()</code>.</p>
 
   <h2 id="tuning">Tuning</h2>
