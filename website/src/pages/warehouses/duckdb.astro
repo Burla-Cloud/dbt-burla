@@ -24,7 +24,7 @@ const toc = [
   <p><code>burla_duckdb</code> wraps <a href="https://github.com/duckdb/dbt-duckdb">dbt-duckdb</a> and routes Python models through Burla.</p>
 
   <h2 id="install">Install</h2>
-  <Code code={`pip install "dbt-burla[duckdb]"`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`pip install "dbt-burla[duckdb]"`} lang="bash" theme="github-light" />
   <p>This pulls in <code>dbt-duckdb</code>, <code>duckdb</code>, and the Burla client.</p>
 
   <h2 id="profile">profiles.yml</h2>
@@ -39,7 +39,7 @@ const toc = [
       threads: 1
       burla_default_workers: 16
       # burla_cluster_url: https://cluster.burla.dev
-      # burla_fake: true           # recommended for local dev / CI`} lang="yaml" theme="github-dark-dimmed" />
+      # burla_fake: true           # recommended for local dev / CI`} lang="yaml" theme="github-light" />
   <p>Everything <code>dbt-duckdb</code> supports works: <code>path: ":memory:"</code>, <code>attach:</code>, <code>filesystems:</code>, <code>extensions:</code>, etc.</p>
 
   <h2 id="right-pick">When this is the right pick</h2>

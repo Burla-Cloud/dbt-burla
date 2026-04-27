@@ -25,7 +25,7 @@ const toc = [
   <p><code>burla_snowflake</code> wraps <a href="https://github.com/dbt-labs/dbt-snowflake">dbt-snowflake</a> and routes Python models to Burla instead of Snowpark.</p>
 
   <h2 id="install">Install</h2>
-  <Code code={`pip install "dbt-burla[snowflake]"`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`pip install "dbt-burla[snowflake]"`} lang="bash" theme="github-light" />
   <p>This pulls in <code>dbt-snowflake</code>, <code>snowflake-connector-python[pandas]</code>, and the Burla client.</p>
 
   <h2 id="profile">profiles.yml</h2>
@@ -47,7 +47,7 @@ const toc = [
       # Burla-specific:
       burla_cluster_url: https://cluster.burla.dev
       burla_default_workers: 200
-      burla_default_cpus_per_worker: 4`} lang="yaml" theme="github-dark-dimmed" />
+      burla_default_cpus_per_worker: 4`} lang="yaml" theme="github-light" />
 
   <p>All of <code>dbt-snowflake</code>'s auth flavors work (password, OAuth, key pair, externalbrowser, etc.) — dbt-burla inherits the full credentials class.</p>
 

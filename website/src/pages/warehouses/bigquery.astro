@@ -26,13 +26,13 @@ const toc = [
   <p><code>burla_bigquery</code> wraps <a href="https://github.com/dbt-labs/dbt-bigquery">dbt-bigquery</a> and routes Python models to Burla instead of Dataproc.</p>
 
   <h2 id="install">Install</h2>
-  <Code code={`pip install "dbt-burla[bigquery]"`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`pip install "dbt-burla[bigquery]"`} lang="bash" theme="github-light" />
   <p>Pulls in <code>dbt-bigquery</code>, <code>pandas-gbq</code>, and the Burla client.</p>
 
   <h2 id="auth">Authentication</h2>
   <Code code={`gcloud auth application-default login
 # or:
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json`} lang="bash" theme="github-dark-dimmed" />
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json`} lang="bash" theme="github-light" />
 
   <h2 id="profile">profiles.yml</h2>
   <p>Swap <code>type: bigquery</code> for <code>type: burla_bigquery</code>:</p>
@@ -50,7 +50,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json`} lang="bash" theme="gith
       # Burla-specific:
       burla_cluster_url: https://cluster.burla.dev
       burla_default_workers: 100
-      burla_default_cpus_per_worker: 2`} lang="yaml" theme="github-dark-dimmed" />
+      burla_default_cpus_per_worker: 2`} lang="yaml" theme="github-light" />
 
   <h2 id="data">Data movement</h2>
   <p>Upstream tables are pulled via the BigQuery Storage API — the fastest path for medium tables. Results are uploaded back via <code>load_table_from_dataframe</code> (Parquet upload).</p>

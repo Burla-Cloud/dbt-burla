@@ -22,7 +22,7 @@ const toc = [
   <h2 id="run">Run it</h2>
   <Code code={`cd dbt-burla/examples/04-fan-out-heavy-compute
 pip install "dbt-burla[duckdb]"
-dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
+dbt run --profiles-dir .`} lang="bash" theme="github-light" />
 
   <p>One SQL model (<code>stg_inputs</code>) and one Python model (<code>computed_features</code>). The Python model runs <code>_monte_carlo_pi</code> on every row, with each row shipped to a Burla worker in fake mode.</p>
 
@@ -55,7 +55,7 @@ def model(dbt, session):
 
     inputs = dbt.ref("stg_inputs").to_dict("records")
     results = list(remote_parallel_map(_monte_carlo_pi, inputs))
-    return pd.DataFrame(results)`} lang="python" theme="github-dark-dimmed" />
+    return pd.DataFrame(results)`} lang="python" theme="github-light" />
 
   <h2 id="when">When to use this pattern</h2>
   <ul>
@@ -75,5 +75,5 @@ def model(dbt, session):
     rows = dbt.ref("stg_inputs").to_dict("records")
     batches = [rows[i:i + 100] for i in range(0, len(rows), 100)]
     results = [row for batch in remote_parallel_map(_process_batch, batches) for row in batch]
-    return pd.DataFrame(results)`} lang="python" theme="github-dark-dimmed" />
+    return pd.DataFrame(results)`} lang="python" theme="github-light" />
 </DocsLayout>

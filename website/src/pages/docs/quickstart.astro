@@ -33,7 +33,7 @@ const toc = [
   <Code code={`git clone https://github.com/Burla-Cloud/dbt-burla.git
 cd dbt-burla/examples/01-quickstart-duckdb
 pip install "dbt-burla[duckdb]"
-dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
+dbt run --profiles-dir .`} lang="bash" theme="github-light" />
 
   <p>That's it. You now have three models in <code>warehouse.duckdb</code>:</p>
   <ul>
@@ -44,15 +44,15 @@ dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
 
   <p>Open the warehouse:</p>
   <Code code={`duckdb warehouse.duckdb
-> select * from main.enriched_orders;`} lang="bash" theme="github-dark-dimmed" />
+> select * from main.enriched_orders;`} lang="bash" theme="github-light" />
 
   <h2 id="option-b">Option B: real Burla cluster + your warehouse</h2>
 
   <h3 id="step-1">1. Install</h3>
-  <Code code={`pip install "dbt-burla[snowflake]"   # or [bigquery] / [duckdb]`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`pip install "dbt-burla[snowflake]"   # or [bigquery] / [duckdb]`} lang="bash" theme="github-light" />
 
   <h3 id="step-2">2. Configure Burla</h3>
-  <Code code={`burla login`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`burla login`} lang="bash" theme="github-light" />
 
   <h3 id="step-3">3. Point profiles.yml at dbt-burla</h3>
   <p>Every field your existing warehouse profile uses still works — just change <code>type:</code> to the Burla variant and add the <code>burla_*</code> knobs.</p>
@@ -73,7 +73,7 @@ dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
       # Burla-specific
       burla_cluster_url: https://my-cluster.burla.dev
       burla_default_workers: 100
-      burla_default_cpus_per_worker: 4`} lang="yaml" theme="github-dark-dimmed" />
+      burla_default_cpus_per_worker: 4`} lang="yaml" theme="github-light" />
 
   <h3 id="step-4">4. Write a Python model</h3>
   <Code code={`# models/enriched_orders.py
@@ -90,10 +90,10 @@ def model(dbt, session):
     dbt.config(materialized="table")
     orders = dbt.ref("stg_orders")
     enriched = list(remote_parallel_map(enrich, orders.to_dict("records")))
-    return pd.DataFrame(enriched)`} lang="python" theme="github-dark-dimmed" />
+    return pd.DataFrame(enriched)`} lang="python" theme="github-light" />
 
   <h3 id="step-5">5. Run it</h3>
-  <Code code={`dbt run --select enriched_orders`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`dbt run --select enriched_orders`} lang="bash" theme="github-light" />
 
   <p>Watch Burla spin up workers and run your model. The result lands as a normal table in Snowflake, which downstream SQL models can <code>ref()</code> like any other.</p>
 

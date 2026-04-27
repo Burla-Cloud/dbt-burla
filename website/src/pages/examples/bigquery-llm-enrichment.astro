@@ -34,10 +34,10 @@ gcloud auth application-default login
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
 
 # And to your LLM provider:
-export OPENAI_API_KEY=sk-...`} lang="bash" theme="github-dark-dimmed" />
+export OPENAI_API_KEY=sk-...`} lang="bash" theme="github-light" />
 
   <h2 id="run">Run it</h2>
-  <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
+  <Code code={`dbt run --profiles-dir .`} lang="bash" theme="github-light" />
 
   <h2 id="the-model">The model</h2>
   <Code code={`# models/categorized_tickets.py
@@ -80,7 +80,7 @@ def model(dbt, session):
 
     tickets = dbt.ref("stg_support_tickets").to_dict("records")
     classified = list(remote_parallel_map(_classify, tickets))
-    return pd.DataFrame(classified)`} lang="python" theme="github-dark-dimmed" />
+    return pd.DataFrame(classified)`} lang="python" theme="github-light" />
 
   <h2 id="tuning">Tuning for API-bound work</h2>
   <table>
@@ -95,7 +95,7 @@ def model(dbt, session):
   <h2 id="errors">Why per-row errors are isolated</h2>
   <p>Each worker handles one row. A transient 429 or 500 from the API is caught and written back with <code>error=</code> populated, but the rest of the rows succeed. Downstream SQL filters:</p>
   <Code code={`select * from {{ ref('categorized_tickets') }}
-where error is null`} lang="sql" theme="github-dark-dimmed" />
+where error is null`} lang="sql" theme="github-light" />
   <p>No cluster-wide failure, no retry-the-whole-job story.</p>
 
   <h2 id="costs">Cost control</h2>

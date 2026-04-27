@@ -23,7 +23,7 @@ const toc = [
   <Code code={`git clone https://github.com/Burla-Cloud/dbt-burla.git
 cd dbt-burla/examples/01-quickstart-duckdb
 pip install "dbt-burla[duckdb]"
-dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
+dbt run --profiles-dir .`} lang="bash" theme="github-light" />
 
   <p>Three models run end-to-end:</p>
   <ol>
@@ -35,7 +35,7 @@ dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
   <p>Inspect the result:</p>
   <Code code={`duckdb warehouse.duckdb
 > select * from main.enriched_orders order by id;
-> select * from main.order_summary;`} lang="bash" theme="github-dark-dimmed" />
+> select * from main.order_summary;`} lang="bash" theme="github-light" />
 
   <h2 id="whats-in-it">What's in it</h2>
 
@@ -47,7 +47,7 @@ dbt run --profiles-dir .`} lang="bash" theme="github-dark-dimmed" />
       type: burla_duckdb
       path: ./warehouse.duckdb
       schema: main
-      burla_fake: true          # run Python in-process; no cluster needed`} lang="yaml" theme="github-dark-dimmed" />
+      burla_fake: true          # run Python in-process; no cluster needed`} lang="yaml" theme="github-light" />
   <p>Flip <code>burla_fake: false</code> and add <code>burla_cluster_url</code> when you're ready to run against a real Burla cluster.</p>
 
   <h3>models/enriched_orders.py</h3>
@@ -73,7 +73,7 @@ def model(dbt, session):
         amount_bucket=bucket_by_amount.astype(str),
         amount_cents=(orders["amount"] * 100).round().astype(int),
         is_us=orders["country"] == "US",
-    )`} lang="python" theme="github-dark-dimmed" />
+    )`} lang="python" theme="github-light" />
 
   <h3>models/order_summary.sql</h3>
   <Code code={`select
@@ -83,7 +83,7 @@ def model(dbt, session):
     sum(amount) as total_amount
 from {{ ref('enriched_orders') }}
 group by 1, 2
-order by country, amount_bucket`} lang="sql" theme="github-dark-dimmed" />
+order by country, amount_bucket`} lang="sql" theme="github-light" />
 
   <h2 id="takeaways">Key takeaways</h2>
   <ul>
